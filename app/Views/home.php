@@ -28,12 +28,12 @@
         <!-- Carte 2 -->
         <div class="card">
             <div class="card__inner">
-                <div class="card__front" style="background-image: url('/images/structuresGonflables.jpg');">
-                    <h3>Structures gonflables</h3>
+                <div class="card__front" style="background-image: url('/images/location.png');">
+                    <h3>Location</h3>
                 </div>
                 <div class="card__back">
-                    <h3>Structures gonflables</h3>
-                    <p>Location de jeux et châteaux gonflables sécurisés, parfaits pour divertir petits et grands lors de vos événements.</p>
+                    <h3>Location de matériel</h3>
+                    <p>Structures gonflables, lumière et sons, alimentation (machines à barbe-à-papa, crêpes...), transport (remorques, remorques figorifiques...)</p>
                     <a href="#contact" class="cta">En savoir plus</a>
                 </div>
             </div>
@@ -43,7 +43,7 @@
         <div class="card">
             <div class="card__inner">
                 <div class="card__front" style="background-image: url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800');">
-                    <h3>Location de matériel</h3>
+                    <h3>Vente</h3>
                 </div>
                 <div class="card__back">
                     <h3>Location de matériel</h3>
