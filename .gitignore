@@ -1,0 +1,26 @@
+# Node / JS
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Composer / PHP
+/vendor/
+/composer.lock
+
+# Configuration sensible
+/config/database.php
+/config/.env
+
+# Cache / logs
+*.log
+*.cache
+/tmp/
+.cache/
+
+# Système
+.DS_Store
+Thumbs.db
+
+# Images générées / uploads temporaires
+/public/images/uploads/
+
