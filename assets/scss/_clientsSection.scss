@@ -1,0 +1,76 @@
+/* Section Clients */
+
+.clients {
+    padding: 4rem 1rem;
+    text-align: center;
+}
+
+.clients h2 {
+    font-size: 2rem;
+    margin-bottom: 2.5rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.clients__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 2rem;
+    justify-items: center;
+    align-items: center;
+}
+
+.clients__grid img {
+    max-height: 60px;
+    max-width: 150px;
+    object-fit: contain;
+    filter: grayscale(100%);
+    opacity: 0.7;
+    transition: filter var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.clients__grid img:hover {
+    filter: grayscale(0%);
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+
+/* Animation apparition progressive */
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.clients__grid img {
+    max-height: 60px;
+    max-width: 150px;
+    object-fit: contain;
+    filter: grayscale(100%);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease, filter 0.3s ease;
+}
+
+
+/* Quand le logo devient visible */
+
+.clients__grid img.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+/* Hover : couleur + zoom */
+
+.clients__grid img.visible:hover {
+    filter: grayscale(0%);
+    transform: scale(1.05);
+}

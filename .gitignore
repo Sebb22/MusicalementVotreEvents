@@ -1,26 +1,31 @@
-# Node / JS
+# === Node / Vite ===
 node_modules/
-npm-debug.log
-yarn-error.log
+dist/
+vite.config.js.timestamp*
 
-# Composer / PHP
-/vendor/
-/composer.lock
+# === Build CSS/JS (ne pas versionner les fichiers générés) ===
+public/css/
+public/js/
 
-# Configuration sensible
-/config/database.php
-/config/.env
-
-# Cache / logs
+# === Logs & temp ===
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 *.log
-*.cache
-/tmp/
-.cache/
+*.tmp
+*.temp
 
-# Système
+# === OS files ===
 .DS_Store
 Thumbs.db
 
-# Images générées / uploads temporaires
-/public/images/uploads/
+# === IDE ===
+.vscode/
+.idea/
+*.swp
 
+# === Fichiers sensibles / config ===
+config/config.php
+config/database.php
+.env

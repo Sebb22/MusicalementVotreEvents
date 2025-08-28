@@ -1,0 +1,24 @@
+@use 'variables';
+@use 'header';
+@use 'hero';
+@use 'prestationsSection';
+@use 'clientsSection';
+@use 'locationPage';
+@use 'footer';
+
+/* Reset */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, sans-serif;
+    background: var(--color-bg-dark);
+    color: var(--color-text);
+    line-height: 1.5;
+    overflow-x: hidden;
+    background: linear-gradient(rgba(11, 11, 12, 0.6), rgba(11, 11, 12, 0.6)), url('/images/background.jpg') center/cover no-repeat;
+}

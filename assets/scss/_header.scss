@@ -1,0 +1,130 @@
+/* Header */
+
+.header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: transparent;
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.header.scrolled {
+    background: rgba(10, 10, 10, 0.85);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.header__container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+}
+
+.header__brand {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+
+/* Navigation desktop */
+
+.header__nav {
+    display: flex;
+    gap: 2rem;
+}
+
+.header__link {
+    color: var(--color-text);
+    text-decoration: none;
+    position: relative;
+    transition: color var(--transition-fast);
+}
+
+.header__link::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--color-accent);
+    transition: width var(--transition-fast);
+}
+
+.header__link:hover::after {
+    width: 100%;
+}
+
+
+/* CTA dans la nav */
+
+.header__cta {
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+}
+
+
+/* Burger (mobile) */
+
+.header__toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 28px;
+    height: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.header__toggle span {
+    display: block;
+    height: 3px;
+    width: 100%;
+    background: var(--color-text);
+    border-radius: 2px;
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+
+/* Mobile styles */
+
+@media (max-width: 768px) {
+    .header__toggle {
+        display: flex;
+    }
+    .header__nav {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        height: 100vh;
+        width: 70%;
+        background: var(--color-bg-dark);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        transition: right 0.4s ease;
+    }
+    .header__nav.open {
+        right: 0;
+    }
+    .header__link,
+    .header__cta {
+        font-size: 1.2rem;
+    }
+    /* Animation burger → croix */
+    .header__toggle.open span:nth-child(1) {
+        transform: rotate(45deg) translateY(8px);
+    }
+    .header__toggle.open span:nth-child(2) {
+        opacity: 0;
+    }
+    .header__toggle.open span:nth-child(3) {
+        transform: rotate(-45deg) translateY(-8px);
+    }
+}

@@ -1,4 +1,4 @@
-</main>
+
 <footer class="footer">
     <div class="footer__container">
         <div class="footer__brand">
@@ -25,6 +25,6 @@
     </div>
 </footer>
 
-<script src="/js/script.js"></script>
+<script src="/js/main.js"></script>
 </body>
 </html>
