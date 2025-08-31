@@ -14,7 +14,8 @@
         <div class="header__container container">
             <div class="header__brand">
                 <span class="header__brand-mark"></span>
-                <?= SITE_NAME ?>
+                <a href="/" class="header__link"> <img class="header__logo" src="/images/logo.png" alt="Logo <?= SITE_NAME ?>"></a>
+               
             </div>
 
             <button class="header__toggle" aria-label="Menu" aria-expanded="false">
@@ -29,4 +30,3 @@
             </nav>
         </div>
     </header>
-   

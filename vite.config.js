@@ -1,22 +1,37 @@
 import { defineConfig } from 'vite';
-import { resolve } from 'path';
+import path from 'path';
 
 export default defineConfig({
-    root: 'assets',
+    resolve: {
+        alias: {
+            '@js': path.resolve(__dirname, 'assets/js'),
+            '@scss': path.resolve(__dirname, 'assets/scss'),
+            '@images': path.resolve(__dirname, 'assets/images'),
+        },
+    },
+    server: {
+        port: 5173,
+        strictPort: true,
+        open: true,
+        proxy: {
+            // redirige tout ce qui n'est pas JS/CSS vers PHP
+            '/': {
+                target: 'http://localhost:8000/', // ton serveur PHP
+                changeOrigin: true,
+                secure: false,
+            },
+        },
+    },
     build: {
-        outDir: '../public',
+        outDir: 'public',
         emptyOutDir: false,
         rollupOptions: {
-            input: {
-                main: resolve(__dirname, 'assets/js/main.js'),
-            },
+            input: path.resolve(__dirname, 'assets/js/main.js'),
             output: {
                 entryFileNames: 'js/[name].js',
                 chunkFileNames: 'js/[name].js',
-                assetFileNames: ({ name }) => {
-                    if (name && name.endsWith('.css')) return 'css/[name]';
-                    return 'assets/[name]';
-                },
+                assetFileNames: ({ name }) =>
+                    name && name.endsWith('.css') ? 'css/[name]' : 'assets/[name]',
             },
         },
     },

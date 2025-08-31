@@ -22,3 +22,35 @@ body {
     overflow-x: hidden;
     background: linear-gradient(rgba(11, 11, 12, 0.6), rgba(11, 11, 12, 0.6)), url('/images/background.jpg') center/cover no-repeat;
 }
+
+
+/* Style commun pour tous les boutons */
+
+.cta {
+    display: inline-block;
+    padding: 1rem 2rem;
+    font-weight: 600;
+    border-radius: 999px;
+    text-decoration: none;
+    color: #fff;
+    background: linear-gradient(90deg, var(--color-accent), var(--color-accent-alt));
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    animation: shine 2s infinite;
+}
+
+@keyframes shine {
+    0% {
+        left: -75%;
+    }
+    100% {
+        left: 125%;
+    }
+}
+
+
+/* Effet hover */
+
+.cta:hover {
+    box-shadow: 0 0 20px var(--color-accent), 0 0 40px var(--color-accent-alt);
+}

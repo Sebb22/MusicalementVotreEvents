@@ -8,48 +8,46 @@
 
   <section class="locations__grid">
     <!-- Carte 1 -->
-    <article class="location-card">
-      <img src="/assets/img/structures-gonflables.jpg" 
-           alt="Structure gonflable colorée pour enfants" 
-           class="location-card__img">
+    <article class="location-card location-card--structures-gonflables">
+
       <div class="location-card__body">
-        <h2 class="location-card__title">Structures gonflables</h2>
+        <h2 class="location-card__title">
+          <span class="location-card__emoji">🎈</span> Structures gonflables
+        </h2>
         <p class="location-card__text">Châteaux, toboggans et parcours pour petits et grands.</p>
         <a href="/locations/structures-gonflables" class="location-card__btn">Voir plus</a>
       </div>
     </article>
 
     <!-- Carte 2 -->
-    <article class="location-card">
-      <img src="/assets/img/machine-barbe-a-papa.jpg" 
-           alt="Machine à barbe à papa en action" 
-           class="location-card__img">
+    <article class="location-card location-card--barbeapapa">
       <div class="location-card__body">
-        <h2 class="location-card__title">Machine à barbe à papa</h2>
-        <p class="location-card__text">Ajoutez une touche gourmande à votre événement.</p>
+        <h2 class="location-card__title">
+          <span class="location-card__emoji">🍭</span> Machines à friandises
+        </h2>
+        <p class="location-card__text">Barbe-à-papa, pop corn, glaces à l'italienne... Ajoutez une touche gourmande à votre événement.</p>
         <a href="/locations/machine-barbe-a-papa" class="location-card__btn">Voir plus</a>
       </div>
     </article>
 
+
     <!-- Carte 3 -->
-    <article class="location-card">
-      <img src="/assets/img/enceinte.jpg" 
-           alt="Enceinte musicale portable" 
-           class="location-card__img">
+    <article class="location-card location-card--sono">
       <div class="location-card__body">
-        <h2 class="location-card__title">Enceinte musicale</h2>
+        <h2 class="location-card__title">
+          <span class="location-card__emoji">🔊</span> Enceinte musicale
+        </h2>
         <p class="location-card__text">Un son puissant pour vos soirées et événements.</p>
         <a href="/locations/enceinte" class="location-card__btn">Voir plus</a>
       </div>
     </article>
 
     <!-- Carte 4 -->
-    <article class="location-card">
-      <img src="/assets/img/autres.jpg" 
-           alt="Autres équipements disponibles à la location" 
-           class="location-card__img">
+    <article class="location-card location-card--remorques-frigorifiques">
       <div class="location-card__body">
-        <h2 class="location-card__title">Autres</h2>
+        <h2 class="location-card__title">
+          <span class="location-card__emoji">✨</span> Autres équipements
+        </h2>
         <p class="location-card__text">Découvrez nos autres équipements disponibles à la location.</p>
         <a href="/locations/autres" class="location-card__btn">Voir plus</a>
       </div>
