@@ -3,8 +3,10 @@
 namespace App\Controllers;
 
 use App\Models\User;
+use App\Core\Controller;
 
-class LoginController
+
+class LoginController extends Controller
 {
     private User $userModel;
 
@@ -16,7 +18,8 @@ class LoginController
     // Affiche le formulaire de login
     public function showLoginForm()
     {
-        require_once __DIR__ . '/../Views/login.php';
+         // Appelle la méthode render de Controller pour charger la vue
+         $this->render("/login");
     }
 
     // Traitement du login

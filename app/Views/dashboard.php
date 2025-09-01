@@ -1,60 +1,66 @@
-<div class="dashboard">
-    <h1>Dashboard - Gestion des catégories de location</h1>
+<section class="dashboard">
+    <h1 class="dashboard__title">Gestion des catégories</h1>
 
-    <!-- Formulaire d'ajout -->
-    <section class="dashboard__form">
-        <form action="/dashboard/add" method="POST" id="formAddCategory">
-            <input type="text" name="categorie" placeholder="Catégorie" required>
-            <input type="text" name="designation" placeholder="Désignation" required>
-            <input type="number" name="nb_personnes" placeholder="Nombre de personnes">
-            <input type="number" name="age_requis" placeholder="Âge requis">
-            <input type="text" name="dimensions" placeholder="Dimensions">
-            <input type="number" step="0.01" name="prix" placeholder="Prix" required>
-            <input type="number" name="location_id" placeholder="Location ID" required>
-            <button type="submit">Ajouter</button>
-        </form>
-    </section>
+    <!-- Formulaire d'ajout d'une nouvelle catégorie -->
+    <form action="/dashboard/addCategory" method="POST" class="dashboard__form">
+        <h2 class="dashboard__form-title">Ajouter une nouvelle catégorie</h2>
 
-    <!-- Tableau des catégories -->
-    <section class="dashboard__table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Catégorie</th>
-                    <th>Désignation</th>
-                    <th>Nb personnes</th>
-                    <th>Âge requis</th>
-                    <th>Dimensions</th>
-                    <th>Prix</th>
-                    <th>Location ID</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($categories)): ?>
-                    <?php foreach ($categories as $cat): ?>
-                        <tr>
-                            <td><?= $cat->id ?></td>
-                            <td><?= htmlspecialchars($cat->categorie) ?></td>
-                            <td><?= htmlspecialchars($cat->designation) ?></td>
-                            <td><?= $cat->nb_personnes ?></td>
-                            <td><?= $cat->age_requis ?></td>
-                            <td><?= htmlspecialchars($cat->dimensions) ?></td>
-                            <td><?= $cat->prix ?></td>
-                            <td><?= $cat->location_id ?></td>
-                            <td>
-                                <a href="/dashboard/edit/<?= $cat->id ?>">Éditer</a> |
-                                <a href="/dashboard/delete/<?= $cat->id ?>" onclick="return confirm('Supprimer cette catégorie ?')">Supprimer</a>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="9">Aucune catégorie trouvée.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </section>
-</div>
+        <label for="categorie" class="dashboard__form-label">Nom de la catégorie :</label>
+        <input type="text" id="categorie" name="categorie" class="dashboard__form-input"
+            placeholder="Ex: Structure_gonflable" required>
+
+        <label for="designation" class="dashboard__form-label">Description :</label>
+        <textarea id="designation" name="designation" class="dashboard__form-textarea"
+            placeholder="Ex: Soft_Play" required></textarea>
+
+        <label for="nb_personnes" class="dashboard__form-label">Nombre de personnes :</label>
+        <input type="number" id="nb_personnes" name="nb_personnes" class="dashboard__form-input"
+            placeholder="Ex: 8" min="1" max="50">
+
+        <label for="age_requis" class="dashboard__form-label">Âge requis :</label>
+        <input type="text" id="age_requis" name="age_requis" class="dashboard__form-input"
+            placeholder="Ex: 2 à 4 ans">
+
+        <label for="dimensions" class="dashboard__form-label">Dimensions :</label>
+        <input type="text" id="dimensions" name="dimensions" class="dashboard__form-input"
+            placeholder="Ex: 4 x 4 m">
+
+        <label for="prix" class="dashboard__form-label">Prix (€) :</label>
+        <input type="number" step="0.01" id="prix" name="prix" class="dashboard__form-input"
+            placeholder="Ex: 150.00" min="0" required>
+
+        <button type="submit" class="dashboard__form-button">Ajouter la catégorie</button>
+    </form>
+
+    <!-- Liste des catégories existantes -->
+    <?php foreach ($categories as $category): ?>
+        <article class="dashboard__category">
+            <h2 class="dashboard__category-title">
+                <?= htmlspecialchars($category['categorie']) ?>
+            </h2>
+
+            <p class="dashboard__category-description">
+                <?= htmlspecialchars($category['designation']) ?>
+            </p>
+
+            <div class="dashboard__images">
+                <?php foreach ($category['images'] as $image): ?>
+                    <div class="dashboard__image">
+                        <img src="<?= $image['image_path'] ?>" alt="Image de <?= htmlspecialchars($category['categorie']) ?>">
+                        <form action="/dashboard/deleteImage?id=<?= $image['id'] ?>" method="POST" class="dashboard__image-form">
+                            <button type="submit" class="dashboard__image-delete">Supprimer</button>
+                        </form>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <form action="/dashboard/uploadImage?category=<?= $category['id'] ?>" method="POST" enctype="multipart/form-data" class="dashboard__upload">
+                <label class="dashboard__upload-label">
+                    Ajouter une image :
+                    <input type="file" name="image" class="dashboard__upload-input" required>
+                </label>
+                <button type="submit" class="dashboard__upload-button">Uploader</button>
+            </form>
+        </article>
+    <?php endforeach; ?>
+</section>

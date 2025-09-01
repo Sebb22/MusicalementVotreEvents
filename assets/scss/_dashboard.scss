@@ -1,149 +1,145 @@
 .dashboard {
-  padding: 2rem;
-  font-family: 'Arial', sans-serif;
-  color: #333;
-
-  h1, h2 {
-    color: #222;
-    margin-bottom: 1rem;
-  }
-
-  /* Formulaire d'ajout */
-  .dashboard__form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    background: #f9f9f9;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-
-    input, button {
-      padding: 0.5rem 0.75rem;
-      font-size: 1rem;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-
-    input {
-      flex: 1 1 200px;
-    }
-
-    button {
-      background-color: #4CAF50;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      transition: background 0.3s;
-
-      &:hover {
-        background-color: #45a049;
-      }
-    }
-  }
-
-  /* Tableau en scroll horizontal si nécessaire */
-  .dashboard__table-wrapper {
-    overflow-x: auto;
-    margin-top: 1.5rem;
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 800px;
-      font-size: 0.95rem;
-
-      th, td {
-        padding: 0.75rem;
-        border: 1px solid #ddd;
-        text-align: left;
-      }
-
-      th {
-        background-color: #4CAF50;
-        color: #fff;
-        font-weight: 600;
-        position: sticky;
-        top: 0;
-      }
-
-      tr {
-        &:nth-child(even) {
-          background-color: #f2f2f2;
-        }
-        &:hover {
-          background-color: #e0f7e0;
-        }
-      }
-
-      a {
-        color: #2196F3;
-        text-decoration: none;
-        font-weight: 500;
-        margin-right: 0.5rem;
-
-        &:hover {
-          text-decoration: underline;
-        }
-      }
-
-      td[colspan] {
+    padding: 2rem;
+    margin-top: 4rem;
+    &__title {
+        font-size: 2rem;
+        margin-bottom: 2rem;
         text-align: center;
-        font-style: italic;
-        color: #666;
-      }
+        color: #ffffff;
     }
-  }
-
-  /* Cards (optionnel si tu veux afficher par card) */
-  .dashboard__cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
-    margin-top: 1.5rem;
-
-    .dashboard__card {
-      background: #fff;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
-
-      &:hover {
-        transform: translateY(-3px);
-      }
-
-      h3 {
-        margin-top: 0;
-        font-size: 1.2rem;
-        color: #333;
-      }
-
-      p {
-        margin: 0.3rem 0;
-        font-size: 0.95rem;
-      }
-
-      .dashboard__card-actions {
-        margin-top: 0.5rem;
-
-        a {
-          color: #2196F3;
-          text-decoration: none;
-          margin-right: 0.5rem;
-
-          &:hover {
-            text-decoration: underline;
-          }
+    /* Formulaire d'ajout */
+    &__form {
+        background-color: #fff;
+        padding: 1.5rem;
+        border-radius: 10px;
+        max-width: 600px;
+        margin: 0 auto 2rem auto;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        &-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #555;
         }
-      }
+        &-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #444;
+        }
+        &-input,
+        &-textarea {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            color: #333;
+            &:focus {
+                border-color: #007bff;
+                outline: none;
+            }
+            &::placeholder {
+                color: #999;
+                font-style: italic;
+            }
+        }
+        &-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        &-button {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            &:hover {
+                background-color: #0056b3;
+            }
+        }
     }
-  }
-
-  /* Responsive mobile */
-  @media(max-width: 768px) {
-    .dashboard__form {
-      flex-direction: column;
+    /* Catégorie existante */
+    &__category {
+        background-color: #fff;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        &-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        &-description {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 0.75rem;
+        }
+        &__images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            &-image {
+                position: relative;
+                width: 100px;
+                height: 100px;
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    border-radius: 6px;
+                }
+                &-form {
+                    position: absolute;
+                    top: 2px;
+                    right: 2px;
+                }
+                &-delete {
+                    background-color: rgba(255, 0, 0, 0.8);
+                    color: #fff;
+                    border: none;
+                    border-radius: 4px;
+                    padding: 0.2rem 0.4rem;
+                    font-size: 0.75rem;
+                    cursor: pointer;
+                    &:hover {
+                        background-color: rgba(200, 0, 0, 0.9);
+                    }
+                }
+            }
+        }
+        &__upload {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            &-label {
+                cursor: pointer;
+                font-size: 0.9rem;
+                color: #333;
+                input {
+                    display: none;
+                }
+            }
+            &-button {
+                padding: 0.4rem 0.8rem;
+                border: none;
+                border-radius: 6px;
+                background-color: #28a745;
+                color: #fff;
+                font-weight: 600;
+                cursor: pointer;
+                font-size: 0.9rem;
+                &:hover {
+                    background-color: #218838;
+                }
+            }
+        }
     }
-  }
 }

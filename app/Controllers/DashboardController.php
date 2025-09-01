@@ -37,7 +37,7 @@ class DashboardController extends Controller
             $item->prix = $_POST['prix'] ?? 0;
             $item->location_id = $_POST['location_id'] ?? 1;
             $item->save();
-
+            
             header('Location: /dashboard');
             exit;
         }
@@ -82,5 +82,54 @@ class DashboardController extends Controller
 
         // Affiche le formulaire d’édition
         $this->render('dashboard_edit', ['item' => $item]);
+    }
+
+    public function uploadCategoryImage(int $categoryId)
+    {
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            $_SESSION['error'] = "Erreur lors de l’upload.";
+            header("Location: /dashboard");
+            exit;
+        }
+
+        $uploadDir = __DIR__ . '/../../public/uploads/categories/' . $categoryId . '/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $filename = uniqid() . '_' . basename($_FILES['image']['name']);
+        $filePath = $uploadDir . $filename;
+        $relativePath = '/uploads/categories/' . $categoryId . '/' . $filename;
+
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $filePath)) {
+            $imageModel = new \App\Models\CategoryImage($this->pdo);
+            $imageModel->addImage($categoryId, $relativePath, true); // par défaut la première = principale
+            $_SESSION['success'] = "Image ajoutée avec succès.";
+        } else {
+            $_SESSION['error'] = "Impossible de sauvegarder l’image.";
+        }
+
+        header("Location: /dashboard");
+        exit;
+    }
+
+    public function deleteCategoryImage(int $imageId)
+    {
+        $imageModel = new \App\Models\CategoryImage($this->pdo);
+        $image = $imageModel->getImageById($imageId);
+
+        if ($image) {
+            $filePath = __DIR__ . '/../../public' . $image['image_path'];
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+            $imageModel->deleteImage($imageId);
+            $_SESSION['success'] = "Image supprimée.";
+        } else {
+            $_SESSION['error'] = "Image introuvable.";
+        }
+
+        header("Location: /dashboard");
+        exit;
     }
 }
