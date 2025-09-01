@@ -1,6 +1,8 @@
 <?php
-// app/Controllers/HomeController.php
 
+namespace App\Controllers;
+
+use App\Core\Controller;
 
 class LocationPageController extends Controller
 {

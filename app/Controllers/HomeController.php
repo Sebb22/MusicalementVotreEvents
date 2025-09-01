@@ -1,5 +1,8 @@
 <?php
 // app/Controllers/HomeController.php
+namespace App\Controllers;
+
+use App\Core\Controller;
 
 require_once __DIR__ . '/../Core/Controller.php';
 
