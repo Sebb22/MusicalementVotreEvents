@@ -1,4 +1,4 @@
-<main>
+
     <section class="hero">
         <div class="hero-logo">
             <img src="/images/logo.png" alt="Logo <?= SITE_NAME ?>">
@@ -76,4 +76,3 @@
             <!-- Ajoute d'autres logos ici -->
         </div>
     </section>
-</main>

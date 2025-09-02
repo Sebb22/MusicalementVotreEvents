@@ -1,35 +1,51 @@
 <section class="dashboard">
     <h1 class="dashboard__title">Gestion des catégories</h1>
+    
 
     <!-- Formulaire d'ajout d'une nouvelle catégorie -->
-    <form action="/dashboard/addCategory" method="POST" class="dashboard__form">
-        <h2 class="dashboard__form-title">Ajouter une nouvelle catégorie</h2>
+    <form class="dashboard-form" action="/dashboard/add" method="POST" enctype="multipart/form-data">
+        <div class="dashboard-form__group">
+        <label for="designation" class="dashboard-form__label">Désignation</label>
+    <select id="designation" name="designation" class="dashboard-form__input" required>
+        <option value="">-- Sélectionnez une désignation --</option>
+        <?php foreach ($locations as $location): ?>
+            <option value="<?= htmlspecialchars($location['id']) ?>">
+                <?= htmlspecialchars($location['name']) ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+        </div>
 
-        <label for="categorie" class="dashboard__form-label">Nom de la catégorie :</label>
-        <input type="text" id="categorie" name="categorie" class="dashboard__form-input"
-            placeholder="Ex: Structure_gonflable" required>
+        <div class="dashboard-form__group">
+            <label for="nb_personnes" class="dashboard-form__label">Nombre de personnes</label>
+            <input type="number" id="nb_personnes" name="nb_personnes" class="dashboard-form__input" placeholder="Ex: 8">
+        </div>
 
-        <label for="designation" class="dashboard__form-label">Description :</label>
-        <textarea id="designation" name="designation" class="dashboard__form-textarea"
-            placeholder="Ex: Soft_Play" required></textarea>
+        <div class="dashboard-form__group">
+            <label for="age_requis" class="dashboard-form__label">Âge requis</label>
+            <input type="text" id="age_requis" name="age_requis" class="dashboard-form__input" placeholder="Ex: 2 à 4 ans">
+        </div>
 
-        <label for="nb_personnes" class="dashboard__form-label">Nombre de personnes :</label>
-        <input type="number" id="nb_personnes" name="nb_personnes" class="dashboard__form-input"
-            placeholder="Ex: 8" min="1" max="50">
+        <div class="dashboard-form__group">
+            <label for="dimensions" class="dashboard-form__label">Dimensions</label>
+            <input type="text" id="dimensions" name="dimensions" class="dashboard-form__input" placeholder="Ex: 4 x 4 m">
+        </div>
 
-        <label for="age_requis" class="dashboard__form-label">Âge requis :</label>
-        <input type="text" id="age_requis" name="age_requis" class="dashboard__form-input"
-            placeholder="Ex: 2 à 4 ans">
+        <div class="dashboard-form__group">
+            <label for="prix" class="dashboard-form__label">Tarif (€)</label>
+            <input type="number" id="prix" name="prix" class="dashboard-form__input" placeholder="Ex: 120" step="0.01" min="0">
+        </div>
 
-        <label for="dimensions" class="dashboard__form-label">Dimensions :</label>
-        <input type="text" id="dimensions" name="dimensions" class="dashboard__form-input"
-            placeholder="Ex: 4 x 4 m">
+        <div class="dashboard-form__group">
+            <label for="images" class="dashboard-form__label">Images</label>
+            <input type="file" id="images" name="images[]" class="dashboard-form__file" multiple accept="image/*">
+            <small class="dashboard-form__hint">Formats acceptés : JPG, PNG, GIF. Taille max : 2 Mo.</small>
 
-        <label for="prix" class="dashboard__form-label">Prix (€) :</label>
-        <input type="number" step="0.01" id="prix" name="prix" class="dashboard__form-input"
-            placeholder="Ex: 150.00" min="0" required>
+            <!-- Zone de preview -->
+            <div id="preview" class="dashboard-form__preview"></div>
+        </div>
 
-        <button type="submit" class="dashboard__form-button">Ajouter la catégorie</button>
+        <button type="submit" class="dashboard-form__submit">Ajouter</button>
     </form>
 
     <!-- Liste des catégories existantes -->

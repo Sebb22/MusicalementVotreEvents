@@ -22,5 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialisation dashboard si présent
     initDashboardForm();
+    // initDashboardForm();
     initDashboard();
 });

@@ -14,10 +14,9 @@ $router->get('/dashboard', function () use ($dashboardController) {
     requireAdmin();
     $dashboardController->index();
 });
-$router->post('/dashboard/add', function () use ($dashboardController) {
-    requireAdmin();
-    $dashboardController->addItem();
-});
+// routes
+$router->post('/dashboard/add', [$dashboardController, 'addItem']);
+
 $router->get('/dashboard/delete/{id}', function ($id) use ($dashboardController) {
     requireAdmin();
     $dashboardController->deleteItem($id);

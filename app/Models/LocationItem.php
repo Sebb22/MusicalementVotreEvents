@@ -4,7 +4,7 @@ namespace App\Models;
 
 use PDO;
 
-class CategoriesLocation
+class LocationItem
 {
     private PDO $db;
 
@@ -24,13 +24,13 @@ class CategoriesLocation
 
     public function all(): array
     {
-        $stmt = $this->db->query("SELECT * FROM categories_location ORDER BY id DESC");
+        $stmt = $this->db->query("SELECT * FROM location_items ORDER BY id DESC");
         return $stmt->fetchAll(PDO::FETCH_OBJ);
     }
 
     public function find(int $id): ?object
     {
-        $stmt = $this->db->prepare("SELECT * FROM categories_location WHERE id = :id");
+        $stmt = $this->db->prepare("SELECT * FROM location_items WHERE id = :id");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_OBJ) ?: null;
     }
@@ -38,7 +38,7 @@ class CategoriesLocation
     public function save(): void
     {
         $stmt = $this->db->prepare("
-            INSERT INTO categories_location
+            INSERT INTO location_items
             (categorie, designation, nb_personnes, age_requis, dimensions, prix, location_id)
             VALUES (:categorie, :designation, :nb_personnes, :age_requis, :dimensions, :prix, :location_id)
         ");
@@ -57,7 +57,7 @@ class CategoriesLocation
     public function update(): void
     {
         $stmt = $this->db->prepare("
-            UPDATE categories_location SET
+            UPDATE location_items SET
                 categorie = :categorie,
                 designation = :designation,
                 nb_personnes = :nb_personnes,
@@ -81,7 +81,7 @@ class CategoriesLocation
 
     public function delete(): void
     {
-        $stmt = $this->db->prepare("DELETE FROM categories_location WHERE id = :id");
+        $stmt = $this->db->prepare("DELETE FROM location_items WHERE id = :id");
         $stmt->execute(['id' => $this->id]);
     }
 }
