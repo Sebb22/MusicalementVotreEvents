@@ -7,7 +7,7 @@ import { initClientsReveal } from './animations/clients.js';
 import { initBurgerMenu } from './components/burgerMenu.js';
 import { initHeaderScroll } from './components/headerScroll.js';
 import { initCards } from './components/cards.js';
-import { initDashboardForm } from './components/dashboard.js'; // <-- ajout
+//import { initDashboardForm } from './components/dashboard.js'; // <-- ajout
 
 import { initDashboard } from './components/dashboard.js';
 
@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initCards();
 
     // Initialisation dashboard si présent
-    initDashboardForm();
+    //initDashboardForm();
     // initDashboardForm();
     initDashboard();
 });

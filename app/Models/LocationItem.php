@@ -9,13 +9,13 @@ class LocationItem
     private PDO $db;
 
     public $id;
-    public $categorie;
-    public $designation;
-    public $nb_personnes;
-    public $age_requis;
-    public $dimensions;
-    public $prix;
     public $location_id;
+    public $designation;
+    public $prix;
+    public $stock;
+    public $disponible;
+    public $created_at;
+    public $updated_at;
 
     public function __construct(PDO $pdo)
     {
@@ -39,17 +39,15 @@ class LocationItem
     {
         $stmt = $this->db->prepare("
             INSERT INTO location_items
-            (categorie, designation, nb_personnes, age_requis, dimensions, prix, location_id)
-            VALUES (:categorie, :designation, :nb_personnes, :age_requis, :dimensions, :prix, :location_id)
+            (location_id, designation, prix, stock, disponible)
+            VALUES (:location_id, :designation, :prix, :stock, :disponible)
         ");
         $stmt->execute([
-            'categorie' => $this->categorie,
+            'location_id' => $this->location_id,
             'designation' => $this->designation,
-            'nb_personnes' => $this->nb_personnes,
-            'age_requis' => $this->age_requis,
-            'dimensions' => $this->dimensions,
-            'prix' => $this->prix,
-            'location_id' => $this->location_id
+            'prix'        => $this->prix,
+            'stock'       => $this->stock ?? 0,
+            'disponible'  => $this->disponible ?? 1,
         ]);
         $this->id = $this->db->lastInsertId();
     }
@@ -58,24 +56,20 @@ class LocationItem
     {
         $stmt = $this->db->prepare("
             UPDATE location_items SET
-                categorie = :categorie,
+                location_id = :location_id,
                 designation = :designation,
-                nb_personnes = :nb_personnes,
-                age_requis = :age_requis,
-                dimensions = :dimensions,
                 prix = :prix,
-                location_id = :location_id
+                stock = :stock,
+                disponible = :disponible
             WHERE id = :id
         ");
         $stmt->execute([
-            'categorie' => $this->categorie,
-            'designation' => $this->designation,
-            'nb_personnes' => $this->nb_personnes,
-            'age_requis' => $this->age_requis,
-            'dimensions' => $this->dimensions,
-            'prix' => $this->prix,
             'location_id' => $this->location_id,
-            'id' => $this->id
+            'designation' => $this->designation,
+            'prix'        => $this->prix,
+            'stock'       => $this->stock,
+            'disponible'  => $this->disponible,
+            'id'          => $this->id,
         ]);
     }
 
@@ -83,5 +77,58 @@ class LocationItem
     {
         $stmt = $this->db->prepare("DELETE FROM location_items WHERE id = :id");
         $stmt->execute(['id' => $this->id]);
+    }
+
+    public function getAttributes(): array
+    {
+        $stmt = $this->db->prepare("SELECT name, value FROM location_attributes WHERE item_id = :item_id");
+        $stmt->execute(['item_id' => $this->id]);
+        return $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // ['taille' => '3m', 'age_requis' => '6+']
+    }
+
+    public function setAttribute(string $name, string $value): void
+    {
+        // Vérifier si l'attribut existe déjà
+        $stmt = $this->db->prepare("
+        SELECT id FROM location_attributes 
+        WHERE item_id = :item_id AND name = :name
+    ");
+        $stmt->execute(['item_id' => $this->id, 'name' => $name]);
+        $attr = $stmt->fetch(PDO::FETCH_OBJ);
+
+        if ($attr) {
+            // Update si déjà existant
+            $update = $this->db->prepare("
+            UPDATE location_attributes SET value = :value 
+            WHERE id = :id
+        ");
+            $update->execute(['value' => $value, 'id' => $attr->id]);
+        } else {
+            // Insert sinon
+            $insert = $this->db->prepare("
+            INSERT INTO location_attributes (item_id, name, value)
+            VALUES (:item_id, :name, :value)
+        ");
+            $insert->execute([
+                'item_id' => $this->id,
+                'name'    => $name,
+                'value'   => $value,
+            ]);
+        }
+    }
+
+    public function deleteAttribute(string $name): void
+    {
+        $stmt = $this->db->prepare("
+        DELETE FROM location_attributes 
+        WHERE item_id = :item_id AND name = :name
+    ");
+        $stmt->execute(['item_id' => $this->id, 'name' => $name]);
+    }
+
+    public function getPictures(): array
+    {
+        $pictureModel = new LocationPicture($this->pdo);
+        return $pictureModel->getPicturesByItem($this->id);
     }
 }

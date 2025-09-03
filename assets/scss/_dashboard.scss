@@ -1,5 +1,64 @@
 .dashboard {
     margin-top: 6rem;
+    padding: 2rem;
+    color: black;
+    &__title {
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 2rem;
+    }
+    &__items {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    &__item {
+        background: #fff;
+        border-radius: 10px;
+        padding: 1rem;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        &-title {
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            text-align: center;
+        }
+        &-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        &-image {
+            position: relative;
+            img {
+                width: 100px;
+                height: 100px;
+                object-fit: cover;
+                border-radius: 6px;
+                border: 1px solid #ddd;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            }
+            label {
+                display: block;
+                text-align: center;
+                font-size: 0.75rem;
+                margin-top: 2px;
+            }
+            .dashboard__item-image-delete {
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                background: rgba(0, 0, 0, 0.6);
+                color: #fff;
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                font-size: 14px;
+                padding: 2px 6px;
+            }
+        }
+    }
 }
 
 .dashboard-form {
@@ -89,5 +148,33 @@
         cursor: pointer;
         font-size: 14px;
         padding: 2px 6px;
+    }
+    &__attributes {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    &__attr {
+        display: flex;
+        gap: 0.5rem;
+    }
+    &__remove-attr {
+        background: #d9534f;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.9rem;
+    }
+    &__add-attr {
+        align-self: flex-start;
+        background: #28a745;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        font-size: 0.9rem;
     }
 }
