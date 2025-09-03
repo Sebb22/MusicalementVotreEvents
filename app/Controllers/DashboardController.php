@@ -4,7 +4,8 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Models\LocationItem;
-use App\Models\CategoryImage;
+use App\Models\LocationPicture;
+use App\Models\LocationAttribute;
 use App\Models\Location;
 use PDO;
 
@@ -50,37 +51,40 @@ class DashboardController extends Controller
         }
     
         // Validation de base
-        if (empty($_POST['location_id']) || empty($_POST['prix'])) {
-            $_SESSION['error'] = "La catégorie et le prix sont obligatoires.";
+        if (empty($_POST['location_id']) || empty($_POST['name']) || empty($_POST['prix'])) {
+            $_SESSION['error'] = "La catégorie, le nom et le prix sont obligatoires.";
             header('Location: /dashboard');
             exit;
         }
     
         // 1️⃣ Créer le LocationItem
         $item = $this->locationItem;
-        $item->location_id = (int) $_POST['location_id'];
-        $item->prix = (float) $_POST['prix'];
+        $item->location_id  = (int) $_POST['location_id'];
+        $item->name         = $_POST['name'];
+        $item->price        = (float) $_POST['prix'];
+        $item->stock        = (int) ($_POST['stock'] ?? 0);
+        $item->availability = (int) ($_POST['availability'] ?? 1);
     
-        // Optionnel : valeurs générales (designation, dimensions...) si elles existent
-        $item->designation = $_POST['designation'] ?? null;
-        $item->nb_personnes = $_POST['attributes']['nb_personnes'] ?? null;
-        $item->age_requis = $_POST['attributes']['age_requis'] ?? null;
-        $item->dimensions = $_POST['attributes']['dimensions'] ?? null;
+        // Attributs spécifiques selon la catégorie
+        $locationAttrsMap = [
+            1 => ['nb_personnes', 'age_requis', 'dimensions', 'poids'], // Structures gonflables
+            2 => ['menu', 'quantite'],                                   // Restauration
+            3 => ['type_jeu', 'nombre_joueurs'],                         // Jeux
+            4 => ['mascotte_nom', 'taille', 'age_min']                  // Mascottes
+        ];
     
-        $item->save(); // enregistre et récupère $item->id
+        $item->save(); // insertion pour récupérer l'id
     
-        // 2️⃣ Enregistrer tous les LocationAttribute
+        // 2️⃣ Enregistrer les attributs spécifiques et dynamiques
+        $attrModel = new LocationAttribute($this->pdo);
+    
         if (!empty($_POST['attributes'])) {
-            $attrModel = new LocationAttribute($this->pdo);
-    
             foreach ($_POST['attributes'] as $name => $value) {
-                // Vérifier que c'est bien un champ standard ou un champ manuel (index numérique)
                 if (is_array($value)) {
-                    // champ manuel : ['name' => ..., 'value' => ...]
-                    $attrName = $value['name'] ?? null;
+                    $attrName  = $value['name'] ?? null;
                     $attrValue = $value['value'] ?? null;
                 } else {
-                    $attrName = $name;
+                    $attrName  = $name;
                     $attrValue = $value;
                 }
     
@@ -90,8 +94,16 @@ class DashboardController extends Controller
             }
         }
     
-        // 3️⃣ Upload et sauvegarde des images
-        if (!empty($_FILES['images'])) {
+        // Ajouter automatiquement les champs spécifiques selon location_id s'ils sont présents dans $_POST
+        $specificAttrs = $locationAttrsMap[$item->location_id] ?? [];
+        foreach ($specificAttrs as $attrName) {
+            if (isset($_POST[$attrName]) && $_POST[$attrName] !== '') {
+                $attrModel->addAttribute($item->id, $attrName, $_POST[$attrName]);
+            }
+        }
+    
+        // 3️⃣ Upload images
+        if (!empty($_FILES['images']['tmp_name'])) {
             $uploadDir = __DIR__ . '/../../public/uploads/items/' . $item->id . '/';
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
     
@@ -102,7 +114,7 @@ class DashboardController extends Controller
                 $relativePath = '/uploads/items/' . $item->id . '/' . $filename;
     
                 if (move_uploaded_file($tmpName, $filePath)) {
-                    $imageModel->addImage($item->id, $relativePath, $key === 0 ? 1 : 0); // première image = main
+                    $imageModel->addPicture($item->id, $relativePath, $key === 0 ? 1 : 0);
                 }
             }
         }
@@ -111,6 +123,7 @@ class DashboardController extends Controller
         header('Location: /dashboard');
         exit;
     }
+    
     
 
     /**
@@ -145,8 +158,8 @@ class DashboardController extends Controller
     
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // 🔹 Mise à jour des champs généraux
-            $item->designation = $_POST['designation'] ?? $item->designation;
-            $item->prix = $_POST['prix'] ?? $item->prix;
+            $item->name = $_POST['name'] ?? $item->name;
+            $item->price = $_POST['price'] ?? $item->price;
             $item->nb_personnes = $_POST['attributes']['nb_personnes'] ?? $item->nb_personnes;
             $item->age_requis = $_POST['attributes']['age_requis'] ?? $item->age_requis;
             $item->dimensions = $_POST['attributes']['dimensions'] ?? $item->dimensions;
@@ -189,7 +202,7 @@ class DashboardController extends Controller
                     $relativePath = '/uploads/items/' . $item->id . '/' . $filename;
     
                     if (move_uploaded_file($tmpName, $filePath)) {
-                        $imageModel->addImage($item->id, $relativePath, 0); // nouvelles images non principales
+                        $imageModel->addPicture($item->id, $relativePath, 0); // nouvelles images non principales
                     }
                 }
             }
@@ -217,7 +230,7 @@ class DashboardController extends Controller
     /**
      * Upload d'une image pour une catégorie
      */
-    public function uploadCategoryImage(int $categoryId): void
+    public function uploadLocationImage(int $categoryId): void
     {
         requireAdmin();
 
@@ -244,8 +257,8 @@ class DashboardController extends Controller
         $relativePath = '/uploads/categories/' . $categoryId . '/' . $filename;
 
         if (move_uploaded_file($_FILES['image']['tmp_name'], $filePath)) {
-            $imageModel = new CategoryImage($this->pdo);
-            $imageModel->addImage($categoryId, $relativePath, true);
+            $imageModel = new LocationImage($this->pdo);
+            $imageModel->addPicture($categoryId, $relativePath, true);
             $_SESSION['success'] = "Image ajoutée avec succès.";
         } else {
             $_SESSION['error'] = "Impossible de sauvegarder l’image.";
@@ -258,19 +271,19 @@ class DashboardController extends Controller
     /**
      * Supprime une image de catégorie
      */
-    public function deleteCategoryImage(int $imageId): void
+    public function deleteLocationImage(int $imageId): void
     {
         requireAdmin();
 
-        $imageModel = new CategoryImage($this->pdo);
-        $image = $imageModel->getImageById($imageId);
+        $imageModel = new LocationImage($this->pdo);
+        $image = $imageModel->getPicturesByItem($imageId);
 
         if ($image) {
             $filePath = __DIR__ . '/../../public' . $image['image_path'];
             if (file_exists($filePath)) {
                 unlink($filePath);
             }
-            $imageModel->deleteImage($imageId);
+            $imageModel->deletePicture($imageId);
             $_SESSION['success'] = "Image supprimée.";
         } else {
             $_SESSION['error'] = "Image introuvable.";

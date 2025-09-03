@@ -9,8 +9,8 @@ import { initHeaderScroll } from './components/headerScroll.js';
 import { initCards } from './components/cards.js';
 //import { initDashboardForm } from './components/dashboard.js'; // <-- ajout
 
-import { initDashboard } from './components/dashboard.js';
-
+import { initDashboardForm } from './components/dashboard.js';
+import { initFormVerification } from './components/formVerification.js';
 // DOM ready
 document.addEventListener("DOMContentLoaded", () => {
     animateHero();
@@ -23,5 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initialisation dashboard si présent
     //initDashboardForm();
     // initDashboardForm();
-    initDashboard();
+    initDashboardForm();
+    initFormVerification();
 });

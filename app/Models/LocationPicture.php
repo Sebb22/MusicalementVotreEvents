@@ -4,7 +4,7 @@ namespace App\Models;
 
 use PDO;
 
-class LocationImage
+class LocationPicture
 {
     private $pdo;
 

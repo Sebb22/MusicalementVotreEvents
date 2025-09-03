@@ -10,10 +10,10 @@ class LocationItem
 
     public $id;
     public $location_id;
-    public $designation;
-    public $prix;
+    public $name;
+    public $price;
     public $stock;
-    public $disponible;
+    public $availability;
     public $created_at;
     public $updated_at;
 
@@ -39,15 +39,15 @@ class LocationItem
     {
         $stmt = $this->db->prepare("
             INSERT INTO location_items
-            (location_id, designation, prix, stock, disponible)
-            VALUES (:location_id, :designation, :prix, :stock, :disponible)
+            (location_id, name, price, stock, availability)
+            VALUES (:location_id, :name, :price, :stock, :availability)
         ");
         $stmt->execute([
             'location_id' => $this->location_id,
-            'designation' => $this->designation,
-            'prix'        => $this->prix,
+            'name' => $this->name,
+            'price'        => $this->price,
             'stock'       => $this->stock ?? 0,
-            'disponible'  => $this->disponible ?? 1,
+            'availability'  => $this->availability ?? 1,
         ]);
         $this->id = $this->db->lastInsertId();
     }
@@ -57,18 +57,18 @@ class LocationItem
         $stmt = $this->db->prepare("
             UPDATE location_items SET
                 location_id = :location_id,
-                designation = :designation,
-                prix = :prix,
+                name = :name,
+                price = :price,
                 stock = :stock,
-                disponible = :disponible
+                availability = :availability
             WHERE id = :id
         ");
         $stmt->execute([
             'location_id' => $this->location_id,
-            'designation' => $this->designation,
-            'prix'        => $this->prix,
+            'name' => $this->name,
+            'price'        => $this->price,
             'stock'       => $this->stock,
-            'disponible'  => $this->disponible,
+            'availability'  => $this->availability,
             'id'          => $this->id,
         ]);
     }
