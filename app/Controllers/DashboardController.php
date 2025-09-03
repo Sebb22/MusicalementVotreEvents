@@ -65,19 +65,12 @@ class DashboardController extends Controller
         $item->stock        = (int) ($_POST['stock'] ?? 0);
         $item->availability = (int) ($_POST['availability'] ?? 1);
     
-        // Attributs spécifiques selon la catégorie
-        $locationAttrsMap = [
-            1 => ['nb_personnes', 'age_requis', 'dimensions', 'poids'], // Structures gonflables
-            2 => ['menu', 'quantite'],                                   // Restauration
-            3 => ['type_jeu', 'nombre_joueurs'],                         // Jeux
-            4 => ['mascotte_nom', 'taille', 'age_min']                  // Mascottes
-        ];
-    
         $item->save(); // insertion pour récupérer l'id
     
         // 2️⃣ Enregistrer les attributs spécifiques et dynamiques
         $attrModel = new LocationAttribute($this->pdo);
     
+        // Attributs envoyés via formulaire
         if (!empty($_POST['attributes'])) {
             foreach ($_POST['attributes'] as $name => $value) {
                 if (is_array($value)) {
@@ -89,16 +82,29 @@ class DashboardController extends Controller
                 }
     
                 if ($attrName && $attrValue !== null) {
-                    $attrModel->addAttribute($item->id, $attrName, $attrValue);
+                    $attrModel->item_id = $item->id;
+                    $attrModel->name    = $attrName;
+                    $attrModel->value   = $attrValue;
+                    $attrModel->save();
                 }
             }
         }
     
-        // Ajouter automatiquement les champs spécifiques selon location_id s'ils sont présents dans $_POST
+        // Champs spécifiques selon la catégorie
+        $locationAttrsMap = [
+            1 => ['nb_personnes', 'age_requis', 'dimensions', 'poids'], // Structures gonflables
+            2 => ['menu', 'quantite'],                                   // Restauration
+            3 => ['type_jeu', 'nombre_joueurs'],                         // Jeux
+            4 => ['mascotte_nom', 'taille', 'age_min']                  // Mascottes
+        ];
+    
         $specificAttrs = $locationAttrsMap[$item->location_id] ?? [];
         foreach ($specificAttrs as $attrName) {
             if (isset($_POST[$attrName]) && $_POST[$attrName] !== '') {
-                $attrModel->addAttribute($item->id, $attrName, $_POST[$attrName]);
+                $attrModel->item_id = $item->id;
+                $attrModel->name    = $attrName;
+                $attrModel->value   = $_POST[$attrName];
+                $attrModel->save();
             }
         }
     
@@ -114,7 +120,7 @@ class DashboardController extends Controller
                 $relativePath = '/uploads/items/' . $item->id . '/' . $filename;
     
                 if (move_uploaded_file($tmpName, $filePath)) {
-                    $imageModel->addPicture($item->id, $relativePath, $key === 0 ? 1 : 0);
+                    $imageModel->addPicture($item->id, $relativePath, $key === 0); // 1ère image = principale
                 }
             }
         }
@@ -123,7 +129,6 @@ class DashboardController extends Controller
         header('Location: /dashboard');
         exit;
     }
-    
     
 
     /**
