@@ -28,6 +28,22 @@ class LocationItem
         return $stmt->fetchAll(PDO::FETCH_OBJ);
     }
 
+    // Dans LocationItem.php
+    public function allWithPictures(): array
+    {
+        $stmt = $this->db->query("SELECT * FROM location_items");
+        $items = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+        $pictureModel = new LocationPicture($this->db);
+
+        foreach ($items as $item) {
+            $item->pictures = $pictureModel->getPicturesByItem($item->id);
+        }
+
+        return $items;
+    }
+
+
     public function find(int $id): ?object
     {
         $stmt = $this->db->prepare("SELECT * FROM location_items WHERE id = :id");

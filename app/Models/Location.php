@@ -14,7 +14,7 @@ class Location
 
     public function all(): array
     {
-        $stmt = $this->pdo->query("SELECT id, name FROM locations ORDER BY name ASC");
+        $stmt = $this->pdo->query("SELECT id, name FROM locations ORDER BY id ASC");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

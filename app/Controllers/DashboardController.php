@@ -29,7 +29,7 @@ class DashboardController extends Controller
     {
         requireAdmin();
 
-        $categories = $this->locationItem->all();
+        $categories = $this->locationItem->allWithPictures();
         $locations = $this->location->all();
 
         $this->render('dashboard', [

@@ -10,6 +10,10 @@ import { initCards } from './components/cards.js';
 //import { initDashboardForm } from './components/dashboard.js'; // <-- ajout
 
 import { initDashboardForm } from './components/dashboard.js';
+import FormPreview from './components/formPreview.js';
+
+new FormPreview('#images', '#preview');
+
 import { initFormVerification } from './components/formVerification.js';
 // DOM ready
 document.addEventListener("DOMContentLoaded", () => {

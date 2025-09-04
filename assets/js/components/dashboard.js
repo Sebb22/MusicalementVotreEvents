@@ -10,18 +10,19 @@ export function initDashboardForm() {
             { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: 'Ex: 4x4 m' },
             { name: 'poids', label: 'Poids', type: 'text', placeholder: 'Ex: 50kg' }
         ],
-        2: [ // Restauration
-            { name: 'menu', label: 'Menu', type: 'text', placeholder: 'Ex: Pizza, Burger' },
-            { name: 'quantite', label: 'Quantité', type: 'number', placeholder: 'Ex: 50' }
-        ],
-        3: [ // Jeux
+        2: [ // Jeux
             { name: 'type_jeu', label: 'Type de jeu', type: 'text', placeholder: 'Ex: Jeu de société' },
             { name: 'nombre_joueurs', label: 'Nombre de joueurs', type: 'number', placeholder: 'Ex: 2 à 6' }
         ],
-        4: [ // Mascottes
+        3: [ // Mascotte
             { name: 'mascotte_nom', label: 'Nom de la mascotte', type: 'text', placeholder: 'Ex: Pikachu' },
             { name: 'taille', label: 'Taille', type: 'text', placeholder: 'Ex: 1m50' },
             { name: 'age_min', label: 'Âge minimum', type: 'number', placeholder: 'Ex: 3' }
+        ],
+        4: [ // Restauration
+            { name: 'menu', label: 'Menu', type: 'text', placeholder: 'Ex: Pizza, Burger' },
+            { name: 'quantite', label: 'Quantité', type: 'number', placeholder: 'Ex: 50' }
+
         ]
     };
 
