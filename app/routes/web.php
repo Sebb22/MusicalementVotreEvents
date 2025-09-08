@@ -2,7 +2,11 @@
 
 // Routes publiques
 $router->get('/', [$homeController, 'index']);
-$router->get('/location', [$locationPageController, 'show']);
+$router->get('/location', [$locationController, 'index']);
+$router->get("/locations/{slug}", [$locationController, "show"]);
+//$router->get('/locations/{slug}', [$locationController, "show"]);
+
+
 
 // Login
 $router->get('/login', [$loginController, 'showLoginForm']);

@@ -5,7 +5,7 @@
         </div>
         <h1 class="hero__headline">Votre événement, notre passion.</h1>
         <h2 class="hero__subheadline">DJ, structures gonflables et matériel — tout pour réussir vos fêtes.</h2>
-        <a href="#contact" class="cta hero__cta"><span class="shine"></span>Demandez un devis</a>
+        <a href="#contact" class="cta add-to-cart"><span class="shine"></span>Demandez un devis</a>
     </section>
 
     <section id="prestations" class="prestations">

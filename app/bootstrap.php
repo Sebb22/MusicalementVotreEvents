@@ -58,12 +58,14 @@ $userModel = new User($pdo);
 
 // --- Instanciation des controllers ---
 use App\Controllers\HomeController;
-use App\Controllers\LocationPageController;
+use App\Controllers\LocationController;
 use App\Controllers\DashboardController;
 use App\Controllers\LoginController;
 
 $homeController = new HomeController();
-$locationPageController = new LocationPageController();
+$locationController = new \App\Controllers\LocationController($pdo);
+
+
 $dashboardController = new DashboardController($pdo);
 $loginController = new LoginController($userModel);
 

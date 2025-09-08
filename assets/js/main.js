@@ -3,7 +3,7 @@ import '../scss/style.scss';
 import { animateHero } from './animations/headline.js';
 import { initRevealAnimations } from './animations/reveal.js';
 import { initClientsReveal } from './animations/clients.js';
-
+import { initSmoothScroll } from './animations/smoothScroll.js';
 import { initBurgerMenu } from './components/burgerMenu.js';
 import { initHeaderScroll } from './components/headerScroll.js';
 import { initCards } from './components/cards.js';
@@ -25,8 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initCards();
 
     // Initialisation dashboard si présent
-    //initDashboardForm();
-    // initDashboardForm();
     initDashboardForm();
     initFormVerification();
+    initSmoothScroll();
 });
