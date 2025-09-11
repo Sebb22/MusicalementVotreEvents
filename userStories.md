@@ -5,15 +5,15 @@
 ### Must Have
 - [X] Accueil claire et navigation simple (`/`, `home.php`)
 - [ ] Consulter la page Prestations (`/prestations`, `prestations.php`)
-- [/] Consulter la page Location (`/location`, `location.php`)
+- [X] Consulter la page Location (`/location`, `location.php`)
 - [ ] Accéder au Shop (`/shop`, `shop.php`)
 - [ ] Parcourir un catalogue de matériel organisé (`/shop/catalogue`, `catalogue.php`)
-- [ ] Bouton Demande de devis visible (header/footer → `/devis`)
+- [X] Bouton Demande de devis visible (header/footer → `/devis`)
 - [ ] Pré-réserver du matériel en ligne (`/reservation`, `reservation.php`)
 - [ ] Remplir un formulaire de contact / devis (`/contact` ou `/devis`, `contact.php` / `devis.php`)
 - [ ] Recevoir une confirmation par email (POST `/devis/send`)
-- [ ] Dashboard clair pour administrateur (`/admin`, `admin/dashboard.php`)
-- [ ] CRUD contenu (`/admin/crud`, `admin/crud.php`)
+- [X] Dashboard clair pour administrateur (`/admin`, `admin/dashboard.php`)
+- [/] CRUD contenu (`/admin/crud`, `admin/crud.php`)
 - [ ] Gérer demandes de devis et réservations (`/admin/demandes`, `admin/demandes.php`)
 
 ### Should Have

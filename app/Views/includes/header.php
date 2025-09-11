@@ -39,7 +39,7 @@
                 <a class="header__link" href="#prestations">Prestations</a>
                 <a class="header__link" href="/location">Locations</a>
                 <a class="header__link" href="#contact">Contact</a>
-                <a class="cta add-to-cart" href="#devis"><span class="shine"></span>Demander un devis</a>
+                <a class="cta add-to-cart" href="#devis" title="Demandez un devis"><span class="shine"></span>Demander un devis</a>
             </nav>
         </div>
     </header>

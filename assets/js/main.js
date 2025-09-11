@@ -15,6 +15,7 @@ import FormPreview from './components/formPreview.js';
 new FormPreview('#images', '#preview');
 
 import { initFormVerification } from './components/formVerification.js';
+import { animationCardFlip } from './animations/flipAnimation.js';
 // DOM ready
 document.addEventListener("DOMContentLoaded", () => {
     animateHero();
@@ -28,4 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initDashboardForm();
     initFormVerification();
     initSmoothScroll();
+
+    animationCardFlip();
 });
