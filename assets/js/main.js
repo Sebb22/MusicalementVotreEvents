@@ -1,6 +1,6 @@
 import '../scss/style.scss';
 
-import { animateHero } from './animations/headline.js';
+import { splitAndAnimateHeadline } from './animations/headline.js';
 import { initRevealAnimations } from './animations/reveal.js';
 import { initClientsReveal } from './animations/clients.js';
 import { initSmoothScroll } from './animations/smoothScroll.js';
@@ -18,7 +18,7 @@ import { initFormVerification } from './components/formVerification.js';
 import { animationCardFlip } from './animations/flipAnimation.js';
 // DOM ready
 document.addEventListener("DOMContentLoaded", () => {
-    animateHero();
+    splitAndAnimateHeadline();
     initRevealAnimations();
     initClientsReveal();
     initBurgerMenu();

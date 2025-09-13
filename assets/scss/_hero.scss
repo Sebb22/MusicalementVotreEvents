@@ -44,6 +44,11 @@
     transition: transform 1s ease, opacity 1s ease;
 }
 
+.hero__headline .word {
+    display: inline-block;
+    margin-right: 0.3em;
+}
+
 
 /* Glow H1 */
 
@@ -63,5 +68,28 @@
     }
     to {
         opacity: 1;
+    }
+}
+
+
+/* Mobile spécifique */
+
+@media (max-width: 480px) {
+    .hero__headline {
+        font-size: clamp(1rem, 4vw, 2.4rem);
+        line-height: 1.1;
+        max-width: 90%;
+        /* évite que le texte colle aux bords */
+        margin: 0 auto 0.75rem;
+        text-wrap: balance;
+        /* équilibre automatique les lignes (Chrome/Edge/Safari récents) */
+        word-break: keep-all;
+        /* évite de couper les mots au hasard */
+    }
+    .hero__subheadline {
+        font-size: clamp(1rem, 4vw, 1.4rem);
+        line-height: 1.4;
+        max-width: 85%;
+        margin: 0 auto 1rem;
     }
 }

@@ -1,9 +1,10 @@
 /* --- Base --- */
 
 .locations {
-    padding: 2rem;
+    padding: 2rem 1rem;
+    margin: 0 auto;
+    max-width: 1200px; // limite la largeur max
     text-align: center;
-    margin: 5rem;
 }
 
 .locations__header {
@@ -11,20 +12,20 @@
 }
 
 .locations__title {
-    font-size: 2rem;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
     font-weight: bold;
     margin-bottom: 0.5rem;
 }
 
 .locations__intro {
     color: #555;
-    font-size: 1.1rem;
+    font-size: clamp(1rem, 2vw, 1.1rem);
 }
 
 .locations__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
     margin-top: 2rem;
 }
 
@@ -36,8 +37,8 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    width: 20vw;
-    height: 400px;
+    width: 100%; // remplit la cellule grid
+    aspect-ratio: 3 / 4;
     border-radius: 15px;
     overflow: hidden;
     color: #fff;
@@ -50,22 +51,17 @@
         transform: translateY(-5px);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
-    // --- Dégradé flou sur l'image ---
     &::after {
         content: "";
         position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 40%;
-        background: linear-gradient( to top, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.35) 40%, rgba(0, 0, 0, 0) 100%);
-        backdrop-filter: blur(6px); // flou subtil
+        inset: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0) 100%);
         z-index: 0;
     }
 }
 
 
-/* --- Bandeau sombre uniquement derrière le contenu --- */
+/* --- Bandeau sombre --- */
 
 .location-card__body {
     position: relative;
@@ -76,10 +72,9 @@
     align-items: center;
     justify-content: flex-end;
     gap: 0.5rem;
-    // Dégradé progressif (transparent -> noir)
-    background: linear-gradient(to top, #000000b3, #00000096);
+    background: linear-gradient(to top, #000000c0, #00000070);
     width: 100%;
-    height: 40%;
+    height: 45%;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
 }
@@ -88,7 +83,7 @@
 /* --- Titres --- */
 
 .location-card__title {
-    font-size: 1.4rem;
+    font-size: clamp(1.1rem, 2.5vw, 1.6rem);
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -96,23 +91,38 @@
     gap: 0.5rem;
     transition: all 0.3s ease;
     &:hover {
-        transform: scale(1.2);
+        transform: scale(1.1);
         text-shadow: 0 0 15px currentColor, 0 0 25px currentColor;
     }
 }
 
 .location-card__emoji {
-    display: inline-block;
-    font-size: 1.5rem;
-    animation: bounce 2s infinite ease-in-out, sparkle 2.5s infinite alternate;
+    font-size: clamp(1.3rem, 2vw, 1.8rem);
 }
 
 
 /* --- Texte --- */
 
 .location-card__text {
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 2vw, 1rem);
     color: #ddd;
+    line-height: 1.4;
+}
+
+
+/* --- Responsive petits écrans --- */
+
+@media (max-width: 480px) {
+    .locations {
+        padding: 1rem 0.5rem;
+    }
+    .location-card {
+        aspect-ratio: 4 / 5; // un peu plus carré sur mobile
+    }
+    .location-card__body {
+        padding: 0.8rem;
+        gap: 0.4rem;
+    }
 }
 
 

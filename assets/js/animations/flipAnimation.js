@@ -7,7 +7,7 @@ export function animationCardFlip() {
         const seeMoreBtn = card.querySelector('.see-more'); // bouton "voir plus"
         const backBtn = card.querySelector('.back-btn'); // bouton "retour"
         const inner = card.querySelector('.location-item-card__inner'); // contenu interne
-
+        const backFace = card.querySelector('.location-item-card__back');
         if (!inner) return;
 
         // Génère une direction aléatoire de flip (X ou Y)

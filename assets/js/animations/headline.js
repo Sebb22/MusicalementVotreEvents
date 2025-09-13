@@ -1,73 +1,65 @@
-// Cette fonction découpe le texte du titre principal (.hero__headline)
-// et anime chaque lettre individuellement avec un effet de translation et opacité
 export function splitAndAnimateHeadline() {
-    // Sélectionne l'élément du titre principal
     const h = document.querySelector('.hero__headline');
-    if (!h) return; // si l'élément n'existe pas, on quitte la fonction
+    if (!h) return;
 
-    // Récupère le texte et enlève les espaces inutiles
     const text = h.textContent.trim();
-    h.textContent = ''; // vide le texte original pour le reconstruire avec des spans
+    h.textContent = ''; // vide le texte original
 
-    // Crée un fragment de document pour éviter de reflow à chaque ajout
     const frag = document.createDocumentFragment();
 
-    // Découpe le texte caractère par caractère
-    text.split('').forEach((ch) => {
-        const span = document.createElement('span'); // crée un span pour chaque caractère
-        span.textContent = ch === ' ' ? '\u00A0' : ch; // espace insécable si c'est un espace
-        span.style.display = 'inline-block'; // permet de transformer le span individuellement
-        span.style.transform = 'translateY(24px) scale(0.95)'; // position initiale décalée
-        span.style.opacity = '0'; // invisible au départ
-        frag.appendChild(span); // ajoute le span au fragment
+    // Découpe en mots
+    text.split(' ').forEach((word, wi) => {
+        const wordSpan = document.createElement('span');
+        wordSpan.classList.add('word');
+        wordSpan.style.display = 'inline-block'; // permet le wrapping par mot
+        wordSpan.style.marginRight = '0.3em'; // espace entre mots
+
+        // Découpe chaque mot en lettres
+        word.split('').forEach((ch, li) => {
+            const span = document.createElement('span');
+            span.classList.add('letter');
+            span.textContent = ch;
+            span.style.display = 'inline-block';
+            span.style.transform = 'translateY(24px) scale(0.95)';
+            span.style.opacity = '0';
+            wordSpan.appendChild(span);
+        });
+
+        frag.appendChild(wordSpan);
     });
 
-    h.appendChild(frag); // ajoute tous les spans à l'élément
-    h.style.opacity = '1'; // rend le container visible
-    h.style.transform = 'none'; // annule toute transformation sur le container
+    h.appendChild(frag);
+    h.style.opacity = '1';
+    h.style.transform = 'none';
 
-    // Déclenche l'animation à la frame suivante pour activer les transitions CSS
+    // Animation
     requestAnimationFrame(() => {
-        const spans = h.querySelectorAll('span'); // sélectionne tous les spans
-        spans.forEach((s, i) => {
-            // définit la transition pour chaque span avec un léger décalage
+        const letters = h.querySelectorAll('.letter');
+        letters.forEach((s, i) => {
             s.style.transition = `
-                transform 0.8s cubic-bezier(.68,-0.55,.27,1.55) ${i*40}ms,
-                opacity 0.8s ease ${i*40}ms
+                transform 0.8s cubic-bezier(.68,-0.55,.27,1.55) ${i * 40}ms,
+                opacity 0.8s ease ${i * 40}ms
             `;
-            s.style.transform = 'translateY(0) scale(1)'; // animation vers la position finale
-            s.style.opacity = '1'; // rend visible progressivement
+            s.style.transform = 'translateY(0) scale(1)';
+            s.style.opacity = '1';
 
-            // Ajoute un effet de text-shadow pour créer un glow temporaire
             setTimeout(() => {
                 s.style.textShadow = `
                     0 0 16px rgba(255,255,255,1),
                     0 0 32px rgba(255,255,255,0.8),
                     0 0 48px rgba(255,255,255,0.6)
                 `;
-                // puis réduit le glow progressivement
                 setTimeout(() => {
                     s.style.transition = 'text-shadow 0.8s ease';
                     s.style.textShadow = '0 0 2px rgba(255,255,255,0.4)';
                 }, 400);
-            }, i * 100); // délai progressif pour chaque lettre
+            }, i * 100);
         });
 
-        // Si un sous-titre est présent (.hero__subline), on lui ajoute la classe 'on'
-        // après que toutes les lettres du titre soient animées
-        const h2 = document.querySelector('.hero__subline');
+        // Affiche le sous-titre après l'animation du titre
+        const h2 = document.querySelector('.hero__subheadline');
         if (h2) {
-            setTimeout(() => h2.classList.add('on'), spans.length * 100 + 800);
+            setTimeout(() => h2.classList.add('on'), letters.length * 100 + 800);
         }
     });
-}
-
-// Cette fonction initie l'animation du héros (headline + subheadline)
-export function animateHero() {
-    splitAndAnimateHeadline(); // anime le headline
-    const h2 = document.querySelector('.hero__subheadline');
-    if (h2) {
-        // ajoute la classe 'on' après 1,2s pour déclencher son animation
-        setTimeout(() => h2.classList.add('on'), 1200);
-    }
 }
