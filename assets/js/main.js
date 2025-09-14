@@ -16,7 +16,7 @@ new FormPreview('#images', '#preview');
 
 import { initFormVerification } from './components/formVerification.js';
 import { animationCardFlip } from './animations/flipAnimation.js';
-import { localisationViaGoogleMap } from './components/localisationModule.js';
+import { initLocationModule } from './components/localisationModule.js';
 // DOM ready
 document.addEventListener("DOMContentLoaded", () => {
     splitAndAnimateHeadline();
@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initBurgerMenu();
     initHeaderScroll();
     initCards();
-    localisationViaGoogleMap();
+    initLocationModule();
     // Initialisation dashboard si présent
     initDashboardForm();
     initFormVerification();

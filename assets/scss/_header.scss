@@ -120,4 +120,14 @@
             font-size: 1.2rem;
         }
     }
+    &__close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: none;
+        border: none;
+        font-size: 2rem;
+        color: var(--color-text);
+        cursor: pointer;
+    }
 }
