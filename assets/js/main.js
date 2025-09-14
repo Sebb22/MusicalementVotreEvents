@@ -17,6 +17,7 @@ import { initFormVerification } from './components/formVerification.js';
 import { animationCardFlip } from './animations/flipAnimation.js';
 import { initLocationModule } from './components/localisationModule.js';
 import { animationPrestationsFlip } from './animations/prestationsCardFlipAnimation.js';
+//import { applyMasonry } from './animations/masonryEffectModule.js';
 // DOM ready
 document.addEventListener("DOMContentLoaded", () => {
     splitAndAnimateHeadline();
@@ -26,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initHeaderScroll();
     initCards();
     initLocationModule();
+    //applyMasonry();
     // Initialisation dashboard si présent
     initDashboardForm();
     initFormVerification();

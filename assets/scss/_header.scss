@@ -32,12 +32,12 @@
     }
     &__logo {
         width: auto;
-        max-height: 180px; // desktop
+        max-height: 80px; // desktop
         @media (max-width: 1024px) {
-            max-height: 40px;
+            max-height: 50px;
         }
         @media (max-width: 768px) {
-            max-height: 35px;
+            max-height: 45px;
         }
     }
     /* Navigation desktop */

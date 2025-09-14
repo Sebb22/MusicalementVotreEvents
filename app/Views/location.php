@@ -52,5 +52,15 @@
         <a href="/locations/autres" class="cta see-more">Voir plus</a>
       </div>
     </article>
+      
+    <!-- Carte 5 -->
+      <article class="location-card location-card--jeux">
+      <div class="location-card__body">
+        <h2 class="location-card__title">
+          <span class="location-card__emoji">✨</span> Jeux
+        </h2>
+        <p class="location-card__text">Découvrez nos jeux en bois, mini-golf...</p>
+        <a href="/locations/jeux" class="cta see-more">Voir plus</a>
+      </div>
   </section>
 </main>

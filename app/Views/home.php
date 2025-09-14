@@ -1,6 +1,6 @@
 <section class="hero">
     <div class="hero-logo">
-        <img src="/images/logo.png" alt="Logo <?= SITE_NAME ?>">
+        <img src="/images/Logo_Restaured_White.png" alt="Logo <?= SITE_NAME ?>">
     </div>
     <h1 class="hero__headline">Votre événement, notre passion.</h1>
     <h2 class="hero__subheadline">DJ, structures gonflables et matériel — tout pour réussir vos fêtes.</h2>
