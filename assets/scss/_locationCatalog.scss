@@ -57,10 +57,10 @@
         border-radius: 12px;
     }
     &__front {
-        background: #fff;
+        background: #766282;
     }
     &__back {
-        background: #fff;
+        background: #5b436a;
         padding: 1rem;
         display: flex;
         flex-direction: column;
@@ -69,7 +69,7 @@
         h3 {
             margin: 0;
             font-size: 1.2rem;
-            color: #311243;
+            color: #ffffff;
         }
         ul {
             margin: 0;
@@ -96,7 +96,7 @@
     }
     &__main {
         position: relative;
-        background: #fafafa;
+        background: #71667c;
         width: 100%;
         height: 60%;
         display: flex;
@@ -132,7 +132,7 @@
     }
     &__footer {
         height: 40%;
-        background: white;
+        background: #3c3047;
         padding: 1rem;
         display: flex;
         flex-direction: column;
@@ -140,7 +140,7 @@
         .location-item-card__title {
             text-align: center;
             font-size: 1.2rem;
-            color: #333;
+            color: #fff;
             margin: 0;
             font-weight: 600;
         }
