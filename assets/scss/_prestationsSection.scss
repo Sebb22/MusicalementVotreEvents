@@ -41,10 +41,6 @@
     cursor: pointer;
 }
 
-.card:hover .card__inner {
-    transform: rotateY(180deg);
-}
-
 .card__front,
 .card__back {
     position: absolute;
@@ -68,10 +64,21 @@
 
 .card__back {
     background: rgba(10, 10, 10, 0.9);
-    transform: rotateY(180deg);
     justify-content: center;
     opacity: 0;
     transition: opacity 0.6s ease;
+    backface-visibility: hidden;
+}
+
+
+/* Positionne correctement la face arrière pour les 2 directions */
+
+.card__back--flipY {
+    transform: rotateY(180deg);
+}
+
+.card__back--flipX {
+    transform: rotateX(180deg);
 }
 
 .card:hover .card__back {
