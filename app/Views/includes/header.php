@@ -27,7 +27,7 @@
         <div class="header__container container">
             <div class="header__brand">
                 <span class="header__brand-mark"></span>
-                <a href="/" class="header__link"> <img class="header__logo" src="/images/Logo_Cut_Restaured.png" alt="Logo <?= SITE_NAME ?>"></a>
+                <a href="/" class="header__link"> <img class="header__logo" src="/images/Logo_Cut_Restaured3.png" alt="Logo <?= SITE_NAME ?>"></a>
 
             </div>
 
