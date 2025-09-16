@@ -56,6 +56,8 @@
   <!-- Aperçu -->
   <div class="dashboard-preview">
     <h2>Aperçu</h2>
+    <h3 class="preview__item-category" id="preview-category">Catégorie : -</h3>
+
 
     <div class="preview">
       <div id="preview-container" class="preview__container">

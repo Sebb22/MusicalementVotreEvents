@@ -98,6 +98,18 @@
                 cursor: grabbing;
             }
         }
+        &__item-category {
+            display: inline-block;
+            background: linear-gradient(135deg, #1a0728, #653b7e);
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            margin: 0.5rem 0 1rem;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
         &__remove {
             display: none;
             position: absolute;

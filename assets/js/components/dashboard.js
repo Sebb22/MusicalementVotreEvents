@@ -2,8 +2,9 @@ export function initDashboardForm() {
     const locationSelect = document.getElementById('location_id');
     const attributesContainer = document.getElementById('attributes');
     const previewAttributes = document.getElementById('preview-attributes');
+    const previewCategory = document.getElementById('preview-category');
 
-    if (!locationSelect || !attributesContainer || !previewAttributes) return;
+    if (!locationSelect || !attributesContainer || !previewAttributes || !previewCategory) return;
 
     // --- Attributs par catégorie ---
     const locationAttributes = {
@@ -61,8 +62,20 @@ export function initDashboardForm() {
         });
     }
 
-    locationSelect.addEventListener('change', e => renderAttributes(e.target.value));
-    if (locationSelect.value) renderAttributes(locationSelect.value);
+    // --- Mettre à jour la catégorie sélectionnée ---
+    locationSelect.addEventListener('change', e => {
+        const selectedOption = locationSelect.options[locationSelect.selectedIndex];
+        previewCategory.textContent = selectedOption.value ?
+            `Catégorie : ${selectedOption.text}` :
+            "Catégorie : -";
+        renderAttributes(e.target.value);
+    });
+
+    if (locationSelect.value) {
+        const selectedOption = locationSelect.options[locationSelect.selectedIndex];
+        previewCategory.textContent = `Catégorie : ${selectedOption.text}`;
+        renderAttributes(locationSelect.value);
+    }
 
     // --- Preview générale ---
     const nameInput = document.getElementById('name');
@@ -163,7 +176,6 @@ export function initDashboardForm() {
     function applyTransform(scale) {
         previewMainImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
     }
-
 
     function clampTranslation() {
         const rect = container.getBoundingClientRect();
