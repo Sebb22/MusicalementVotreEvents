@@ -24,17 +24,39 @@ class DashboardController extends Controller
 
     /**
      * Affiche le dashboard avec toutes les catégories et locations
+     * Si $editItemId est fourni, charge les données pour l'édition inline
      */
-    public function index(): void
+    public function index(?int $editItemId = null): void
     {
         requireAdmin();
 
         $categories = $this->locationItem->allWithPictures();
         $locations = $this->location->all();
 
+        $editItem = null;
+        $attributes = [];
+        $images = [];
+
+        if ($editItemId) {
+            $editItem = $this->locationItem->find($editItemId);
+            if ($editItem) {
+                $attrModel = new LocationAttribute($this->pdo);
+                $attributes = $attrModel->allByItem($editItemId);
+
+                $imgModel = new LocationPicture($this->pdo);
+                $images = $imgModel->getPicturesByItem($editItemId);
+            }
+        }
+
+
+
+
         $this->render('dashboard', [
             'categories' => $categories,
-            'locations' => $locations
+            'locations'  => $locations,
+            'editItem'   => $editItem,
+            'attributes' => $attributes,
+            'images'     => $images
         ]);
     }
 
@@ -50,78 +72,44 @@ class DashboardController extends Controller
             exit;
         }
     
-        // Validation de base
-        if (empty($_POST['location_id']) || empty($_POST['name']) || empty($_POST['prix'])) {
+        // Vérifications de base
+        if (empty($_POST['location_id']) || empty($_POST['name']) || empty($_POST['price'])) {
             $_SESSION['error'] = "La catégorie, le nom et le prix sont obligatoires.";
             header('Location: /dashboard');
             exit;
         }
     
-        // 1️⃣ Créer le LocationItem
+        // Création de l’item
         $item = $this->locationItem;
         $item->location_id  = (int) $_POST['location_id'];
         $item->name         = $_POST['name'];
-        $item->price        = (float) $_POST['prix'];
+        $item->price        = (float) $_POST['price'];
         $item->stock        = (int) ($_POST['stock'] ?? 0);
         $item->availability = (int) ($_POST['availability'] ?? 1);
+        $item->save();
     
-        $item->save(); // insertion pour récupérer l'id
-    
-        // 2️⃣ Enregistrer les attributs spécifiques et dynamiques
-        $attrModel = new LocationAttribute($this->pdo);
-    
-        // Attributs envoyés via formulaire
+        // 🔹 Attributs dynamiques
         if (!empty($_POST['attributes'])) {
-            foreach ($_POST['attributes'] as $name => $value) {
-                if (is_array($value)) {
-                    $attrName  = $value['name'] ?? null;
-                    $attrValue = $value['value'] ?? null;
-                } else {
-                    $attrName  = $name;
-                    $attrValue = $value;
-                }
-    
-                if ($attrName && $attrValue !== null) {
-                    $attrModel->item_id = $item->id;
-                    $attrModel->name    = $attrName;
-                    $attrModel->value   = $attrValue;
-                    $attrModel->save();
+            $attrModel = new LocationAttribute($this->pdo);
+            foreach ($_POST['attributes'] as $attrName => $attrValue) {
+                if ($attrValue !== null && $attrValue !== '') {
+                    $attrModel->updateOrCreate($item->id, $attrName, $attrValue);
                 }
             }
         }
     
-        // Champs spécifiques selon la catégorie
-        $locationAttrsMap = [
-            1 => ['nb_personnes', 'age_requis', 'dimensions', 'poids'], // Structures gonflables
-            2 => ['menu', 'quantite'],                                   // Restauration
-            3 => ['type_jeu', 'nombre_joueurs'],                         // Jeux
-            4 => ['mascotte_nom', 'taille', 'age_min']                  // Mascottes
-        ];
-    
-        $specificAttrs = $locationAttrsMap[$item->location_id] ?? [];
-        foreach ($specificAttrs as $attrName) {
-            if (isset($_POST[$attrName]) && $_POST[$attrName] !== '') {
-                $attrModel->item_id = $item->id;
-                $attrModel->name    = $attrName;
-                $attrModel->value   = $_POST[$attrName];
-                $attrModel->save();
-            }
-        }
-    
-        // 3️⃣ Upload images
-        if (!empty($_FILES['images']['tmp_name'])) {
+        // 🔹 Upload image (un seul fichier)
+        if (!empty($_FILES['image']['tmp_name'])) {
             $uploadDir = __DIR__ . '/../../public/uploads/items/' . $item->id . '/';
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
     
             $imageModel = new LocationPicture($this->pdo);
-            foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
-                $filename = uniqid() . '_' . basename($_FILES['images']['name'][$key]);
-                $filePath = $uploadDir . $filename;
-                $relativePath = '/uploads/items/' . $item->id . '/' . $filename;
+            $filename = uniqid() . '_' . basename($_FILES['image']['name']);
+            $filePath = $uploadDir . $filename;
+            $relativePath = '/uploads/items/' . $item->id . '/' . $filename;
     
-                if (move_uploaded_file($tmpName, $filePath)) {
-                    $imageModel->addPicture($item->id, $relativePath, $key === 0); // 1ère image = principale
-                }
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $filePath)) {
+                $imageModel->addPicture($item->id, $relativePath, true);
             }
         }
     
@@ -130,6 +118,7 @@ class DashboardController extends Controller
         exit;
     }
     
+
 
     /**
      * Supprime une catégorie
@@ -148,153 +137,60 @@ class DashboardController extends Controller
     }
 
     /**
-     * Edite une catégorie
+     * Édite une catégorie (redirige vers index avec l'item à éditer)
      */
     public function editItem(int $id): void
     {
         requireAdmin();
-    
+
         $item = $this->locationItem->find($id);
         if (!$item) {
             $_SESSION['error'] = "Item introuvable.";
             header('Location: /dashboard');
             exit;
         }
-    
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // 🔹 Mise à jour des champs généraux
-            $item->name = $_POST['name'] ?? $item->name;
-            $item->price = $_POST['price'] ?? $item->price;
-            $item->nb_personnes = $_POST['attributes']['nb_personnes'] ?? $item->nb_personnes;
-            $item->age_requis = $_POST['attributes']['age_requis'] ?? $item->age_requis;
-            $item->dimensions = $_POST['attributes']['dimensions'] ?? $item->dimensions;
+            $item->name         = $_POST['name'] ?? $item->name;
+            $item->price        = $_POST['prix'] ?? $item->price;
+            $item->stock        = $_POST['stock'] ?? $item->stock;
+            $item->availability = $_POST['availability'] ?? $item->availability;
             $item->update();
-    
-            // 🔹 Mise à jour / ajout des attributs
+
+            // 🔹 Mise à jour des attributs
             if (!empty($_POST['attributes'])) {
                 $attrModel = new LocationAttribute($this->pdo);
-    
-                foreach ($_POST['attributes'] as $name => $value) {
-                    if (is_array($value)) {
-                        $attrName = $value['name'] ?? null;
-                        $attrValue = $value['value'] ?? null;
-                    } else {
-                        $attrName = $name;
-                        $attrValue = $value;
-                    }
-    
-                    if ($attrName && $attrValue !== null) {
-                        // Si l'attribut existe déjà -> update, sinon -> insert
-                        $existing = $attrModel->getByItemAndName($id, $attrName);
-                        if ($existing) {
-                            $attrModel->updateAttribute($existing['id'], $attrValue);
-                        } else {
-                            $attrModel->addAttribute($id, $attrName, $attrValue);
-                        }
+                foreach ($_POST['attributes'] as $attrName => $attrValue) {
+                    if ($attrValue !== null && $attrValue !== '') {
+                        $attrModel->updateOrCreate($id, $attrName, $attrValue);
                     }
                 }
             }
-    
+
             // 🔹 Upload des nouvelles images
-            if (!empty($_FILES['images'])) {
+            if (!empty($_FILES['images']['tmp_name'])) {
                 $uploadDir = __DIR__ . '/../../public/uploads/items/' . $item->id . '/';
                 if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-    
+
                 $imageModel = new LocationPicture($this->pdo);
                 foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
                     $filename = uniqid() . '_' . basename($_FILES['images']['name'][$key]);
                     $filePath = $uploadDir . $filename;
                     $relativePath = '/uploads/items/' . $item->id . '/' . $filename;
-    
+
                     if (move_uploaded_file($tmpName, $filePath)) {
-                        $imageModel->addPicture($item->id, $relativePath, 0); // nouvelles images non principales
+                        $imageModel->addPicture($item->id, $relativePath, false);
                     }
                 }
             }
-    
+
             $_SESSION['success'] = "Item mis à jour avec succès.";
             header('Location: /dashboard');
             exit;
         }
-    
-        // 🔹 Affichage du formulaire d'édition avec données existantes
-        $attributesModel = new LocationAttribute($this->pdo);
-        $attributes = $attributesModel->getByItem($id);
-    
-        $imagesModel = new LocationPicture($this->pdo);
-        $images = $imagesModel->getByItem($id);
-    
-        $this->render('dashboard_edit', [
-            'item' => $item,
-            'attributes' => $attributes,
-            'images' => $images
-        ]);
-    }
-    
 
-    /**
-     * Upload d'une image pour une catégorie
-     */
-    public function uploadLocationImage(int $categoryId): void
-    {
-        requireAdmin();
-
-        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-            $_SESSION['error'] = "Erreur lors de l’upload.";
-            header("Location: /dashboard");
-            exit;
-        }
-
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-        if (!in_array($_FILES['image']['type'], $allowedTypes)) {
-            $_SESSION['error'] = "Type de fichier non autorisé.";
-            header("Location: /dashboard");
-            exit;
-        }
-
-        $uploadDir = __DIR__ . '/../../public/uploads/categories/' . $categoryId . '/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-
-        $filename = uniqid() . '_' . basename($_FILES['image']['name']);
-        $filePath = $uploadDir . $filename;
-        $relativePath = '/uploads/categories/' . $categoryId . '/' . $filename;
-
-        if (move_uploaded_file($_FILES['image']['tmp_name'], $filePath)) {
-            $imageModel = new LocationImage($this->pdo);
-            $imageModel->addPicture($categoryId, $relativePath, true);
-            $_SESSION['success'] = "Image ajoutée avec succès.";
-        } else {
-            $_SESSION['error'] = "Impossible de sauvegarder l’image.";
-        }
-
-        header("Location: /dashboard");
-        exit;
-    }
-
-    /**
-     * Supprime une image de catégorie
-     */
-    public function deleteLocationImage(int $imageId): void
-    {
-        requireAdmin();
-
-        $imageModel = new LocationImage($this->pdo);
-        $image = $imageModel->getPicturesByItem($imageId);
-
-        if ($image) {
-            $filePath = __DIR__ . '/../../public' . $image['image_path'];
-            if (file_exists($filePath)) {
-                unlink($filePath);
-            }
-            $imageModel->deletePicture($imageId);
-            $_SESSION['success'] = "Image supprimée.";
-        } else {
-            $_SESSION['error'] = "Image introuvable.";
-        }
-
-        header("Location: /dashboard");
-        exit;
+        // GET => rediriger vers index() avec l’item à éditer
+        $this->index($id);
     }
 }

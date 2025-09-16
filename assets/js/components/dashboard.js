@@ -1,30 +1,57 @@
 export function initDashboardForm() {
+    // --- Sélecteurs ---
     const locationSelect = document.getElementById('location_id');
     const attributesContainer = document.getElementById('attributes');
     const previewAttributes = document.getElementById('preview-attributes');
     const previewCategory = document.getElementById('preview-category');
+    const nameInput = document.getElementById('name');
+    const priceInput = document.getElementById('price');
+    const stockInput = document.getElementById('stock');
+    const availabilityInput = document.getElementById('availability');
+    const imageInput = document.getElementById('image'); // <-- corrigé
+
+    const previewName = document.getElementById('preview-name');
+    const previewPrice = document.getElementById('preview-price');
+    const previewStock = document.getElementById('preview-stock');
+    const previewAvailability = document.getElementById('preview-availability');
+    const previewMainImage = document.getElementById('preview-main-image');
+
+    const resizeInput = document.getElementById('resize');
+    const container = document.getElementById('preview-container');
+    const removeBtn = document.getElementById('remove-image');
 
     if (!locationSelect || !attributesContainer || !previewAttributes || !previewCategory) return;
 
+    // --- Onglets ---
+    const tabs = document.querySelectorAll('.dashboard-tab');
+    const panes = document.querySelectorAll('.dashboard-pane');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            panes.forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            const pane = document.getElementById('tab-' + tab.dataset.tab);
+            if (pane) pane.classList.add('active');
+        });
+    });
+
     // --- Attributs par catégorie ---
     const locationAttributes = {
-        1: [ // Structures gonflables
+        1: [
             { name: 'nb_personnes', label: 'Nombre de personnes', type: 'number', placeholder: 'Ex: 8', icon: 'fas fa-users' },
             { name: 'age_requis', label: 'Âge requis', type: 'text', placeholder: 'Ex: 2 à 4 ans', icon: 'fas fa-child' },
             { name: 'dimensions', label: 'Dimensions', type: 'text', placeholder: 'Ex: 4x4 m', icon: 'fas fa-ruler-combined' }
         ],
-        2: [ // Jeux de société
+        2: [
             { name: 'duree', label: 'Durée', type: 'text', placeholder: 'Ex: 30 min', icon: 'fas fa-clock' },
             { name: 'nb_joueurs', label: 'Nombre de joueurs', type: 'number', placeholder: 'Ex: 4', icon: 'fas fa-users' }
         ],
-        3: [ // Équipements sportifs
-                { name: 'poids', label: 'Poids', type: 'text', placeholder: 'Ex: 2 kg', icon: 'fas fa-weight' },
-                { name: 'taille', label: 'Taille', type: 'text', placeholder: 'Ex: 1,5 m', icon: 'fas fa-ruler' }
-            ]
-            // ... autres catégories possibles
+        3: [
+            { name: 'poids', label: 'Poids', type: 'text', placeholder: 'Ex: 2 kg', icon: 'fas fa-weight' },
+            { name: 'taille', label: 'Taille', type: 'text', placeholder: 'Ex: 1,5 m', icon: 'fas fa-ruler' }
+        ]
     };
 
-    // --- Fonction pour afficher les attributs dynamiques ---
     function renderAttributes(locId) {
         attributesContainer.innerHTML = '';
         previewAttributes.innerHTML = '';
@@ -46,7 +73,6 @@ export function initDashboardForm() {
             attrDiv.innerHTML = `<i class="${attr.icon}"></i><span id="preview-${attr.name}">-</span>`;
             previewAttributes.appendChild(attrDiv);
 
-            // Liaison input -> preview
             const input = div.querySelector('input');
             const span = attrDiv.querySelector('span');
             input.addEventListener('input', () => {
@@ -78,41 +104,26 @@ export function initDashboardForm() {
     }
 
     // --- Preview générale ---
-    const nameInput = document.getElementById('name');
-    const prixInput = document.getElementById('prix');
-    const stockInput = document.getElementById('stock');
-    const availabilityInput = document.getElementById('availability');
-    const imagesInput = document.getElementById('images');
+    if (nameInput) nameInput.addEventListener('input', () => previewName.textContent = nameInput.value || 'Nom de l’article');
+    if (priceInput) priceInput.addEventListener('input', () => previewPrice.textContent = priceInput.value ? `${priceInput.value} €` : '0 €');
+    if (stockInput) stockInput.addEventListener('input', () => previewStock.textContent = stockInput.value ? `Stock : ${stockInput.value}` : 'Stock : 0');
+    if (availabilityInput) availabilityInput.addEventListener('change', () => previewAvailability.textContent = availabilityInput.value == 1 ? 'Disponibilité : Disponible' : 'Disponibilité : Indisponible');
 
-    const previewName = document.getElementById('preview-name');
-    const previewPrice = document.getElementById('preview-price');
-    const previewStock = document.getElementById('preview-stock');
-    const previewAvailability = document.getElementById('preview-availability');
-    const previewMainImage = document.getElementById('preview-main-image');
-
-    const resizeInput = document.getElementById('resize');
-    const container = document.getElementById('preview-container');
-    const removeBtn = document.getElementById('remove-image');
-
+    // --- Upload image ---
     let translateX = 0,
         translateY = 0,
         scale = 0.9;
     let isDragging = false,
         startX, startY;
 
-    // Inputs texte / prix / stock / dispo
-    if (nameInput) nameInput.addEventListener('input', () => previewName.textContent = nameInput.value || 'Nom de l’article');
-    if (prixInput) prixInput.addEventListener('input', () => previewPrice.textContent = prixInput.value ? `${prixInput.value} €` : '0 €');
-    if (stockInput) stockInput.addEventListener('input', () => previewStock.textContent = stockInput.value ? `Stock : ${stockInput.value}` : 'Stock : 0');
-    if (availabilityInput) availabilityInput.addEventListener('change', () => previewAvailability.textContent = availabilityInput.value == 1 ? 'Disponibilité : Disponible' : 'Disponibilité : Indisponible');
-
-    // Upload image
-    if (imagesInput) {
-        imagesInput.addEventListener('change', () => {
-            if (imagesInput.files.length > 0) {
-                const file = imagesInput.files[0];
+    if (imageInput) {
+        imageInput.addEventListener('change', () => {
+            console.log(imageInput.files);
+            if (imageInput.files.length > 0) {
+                const file = imageInput.files[0];
                 const reader = new FileReader();
                 reader.onload = e => {
+                    console.log("Image loaded!");
                     previewMainImage.src = e.target.result;
                     removeBtn.style.display = "block";
                     applyTransform(scale);
@@ -163,7 +174,7 @@ export function initDashboardForm() {
     // Supprimer image
     if (removeBtn) removeBtn.addEventListener('click', resetImage);
 
-    // Double-clic = reset zoom & position (mais conserve l'image)
+    // Double-clic reset
     if (previewMainImage) previewMainImage.addEventListener('dblclick', () => {
         translateX = 0;
         translateY = 0;
@@ -172,7 +183,7 @@ export function initDashboardForm() {
         applyTransform(scale);
     });
 
-    // --- Fonctions ---
+    // --- Fonctions internes ---
     function applyTransform(scale) {
         previewMainImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
     }
@@ -189,7 +200,7 @@ export function initDashboardForm() {
 
     function resetImage() {
         previewMainImage.src = "https://via.placeholder.com/400x250?text=Aperçu";
-        imagesInput.value = "";
+        imageInput.value = "";
         translateX = 0;
         translateY = 0;
         scale = 0.9;

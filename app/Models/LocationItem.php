@@ -37,11 +37,17 @@ class LocationItem
         $pictureModel = new LocationPicture($this->db);
 
         foreach ($items as $item) {
+            // 🔹 Ajouter les images
             $item->pictures = $pictureModel->getPicturesByItem($item->id);
+
+            // 🔹 Ajouter les attributs
+            $this->id = $item->id; // nécessaire pour que getAttributes() sache quel item charger
+            $item->attributes = $this->getAttributes();
         }
 
         return $items;
     }
+
 
 
     public function find(int $id): ?object

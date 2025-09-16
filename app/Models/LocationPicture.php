@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 namespace App\Models;
 
@@ -13,9 +13,6 @@ class LocationPicture
         $this->pdo = $pdo;
     }
 
-    /**
-     * Récupère toutes les images d’un item
-     */
     public function getPicturesByItem(int $itemId): array
     {
         $stmt = $this->pdo->prepare("SELECT * FROM location_images WHERE item_id = :item_id");
@@ -23,13 +20,15 @@ class LocationPicture
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Ajoute une image
-     */
+    // Alias pour compatibilité
+    public function getByItem(int $itemId): array
+    {
+        return $this->getPicturesByItem($itemId);
+    }
+
     public function addPicture(int $itemId, string $path, bool $isMain = false): bool
     {
         if ($isMain) {
-            // reset les autres images principales
             $this->pdo->prepare("UPDATE location_images SET is_main = 0 WHERE item_id = :item_id")
                       ->execute(['item_id' => $itemId]);
         }
@@ -45,18 +44,12 @@ class LocationPicture
         ]);
     }
 
-    /**
-     * Supprime une image
-     */
     public function deletePicture(int $pictureId): bool
     {
         $stmt = $this->pdo->prepare("DELETE FROM location_images WHERE id = :id");
         return $stmt->execute(['id' => $pictureId]);
     }
 
-    /**
-     * Définit une image principale
-     */
     public function setMainPicture(int $pictureId, int $itemId): bool
     {
         $this->pdo->prepare("UPDATE location_images SET is_main = 0 WHERE item_id = :item_id")

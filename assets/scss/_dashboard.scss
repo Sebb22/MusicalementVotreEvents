@@ -1,19 +1,122 @@
+/*======================================
+=            DASHBOARD PREMIUM         =
+======================================*/
+
 .dashboard {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr; // Form + Preview côte à côte
     gap: 2rem;
     padding: 2rem;
     margin: 8rem auto;
     max-width: 1200px;
+    font-family: 'Inter', sans-serif;
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
     &__title {
         grid-column: 1 / -1;
         text-align: center;
         margin-bottom: 2rem;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #3e2d64;
+        position: relative;
+        &::after {
+            content: "";
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #6b46c1, #9f7aea);
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
     }
-    @media (max-width: 768px) {
-        grid-template-columns: 1fr;
+    /*======================================
+    =                 ONGLETS             =
+    ======================================*/
+    &-tabs {
+        grid-column: 1 / -1; // ⚡ Onglets sur toute la largeur
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        .dashboard-tab {
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            background: #f5f5f5;
+            cursor: pointer;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            &:hover:not(.active) {
+                background: linear-gradient(135deg, #e0e0e0, #cfcfcf);
+                transform: translateY(-2px);
+            }
+            &.active {
+                background: linear-gradient(135deg, #007bff, #5a3ec7);
+                color: #fff;
+                border-color: #5a3ec7;
+                &::before {
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    bottom: 0;
+                    height: 4px;
+                    width: 100%;
+                    background: linear-gradient(90deg, #ff7f50, #6b46c1);
+                    border-radius: 2px;
+                    transform: scaleX(0);
+                    transform-origin: left;
+                    animation: slideIn 0.3s forwards;
+                }
+            }
+        }
+    }
+    /*======================================
+    =      PANNEAUX : FORM & PREVIEW      =
+    ======================================*/
+    &-panes {
+        grid-column: 1 / -1; // ⚡ Panels aussi sur toute la largeur
+        display: flex;
+        gap: 2rem;
+        .dashboard-pane {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            &.active {
+                width: 80vw;
+                display: flex;
+                opacity: 1;
+                transform: translateY(0);
+                gap: 2rem;
+                align-items: flex-start;
+                .dashboard-form,
+                .dashboard-preview {
+                    flex: 1;
+                    min-width: 0; // ⚡ évite overflow
+                    animation: fadeSlideIn 0.4s ease forwards;
+                }
+            }
+        }
+    }
+    @media (max-width: 1024px) {
+        &-panes .dashboard-pane.active {
+            flex-direction: column;
+        }
     }
 }
+
+
+/*======================================
+=         FORMULAIRE DASHBOARD          =
+======================================*/
 
 .dashboard-form {
     display: flex;
@@ -23,6 +126,10 @@
     background: #fff;
     border-radius: 10px;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    &:hover {
+        transform: translateY(-2px);
+    }
     &__group {
         display: flex;
         flex-direction: column;
@@ -62,40 +169,55 @@
     }
 }
 
+
+/*======================================
+=         PREVIEW DASHBOARD             =
+======================================*/
+
 .dashboard-preview {
-    background: rgba(149, 129, 161, 0.7); // même résultat
+    background: rgba(149, 129, 161, 0.7);
     border-radius: 0.8rem;
     padding: 2rem;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    &:hover {
+        transform: translateY(-2px);
+    }
     h2 {
         margin-bottom: 1.5rem;
+        text-align: center;
+        color: #3e2d64;
     }
     .preview {
-        border: 2px solid rgba(255, 255, 255, 0.2); // contour léger et subtil
-        padding: 2rem;
         position: relative;
+        width: 100%;
+        border-radius: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
         &__container {
-            margin: 0 auto 0.2rem;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
             width: 100%;
             height: 250px;
-            border: 2px solid rgba(255, 255, 255, .2);
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            cursor: grab;
             display: flex;
             justify-content: center;
             align-items: center;
+            cursor: grab;
+            transition: box-shadow 0.3s ease;
+            &:hover {
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            }
             img {
-                position: relative;
-                width: 80%; // réduit l'image de base
+                width: 80%;
                 height: auto;
                 object-fit: contain;
-                transition: transform 0.2s ease;
-                user-select: none;
-                pointer-events: none;
-            }
-            &.dragging {
-                cursor: grabbing;
+                transition: transform 0.3s ease;
             }
         }
         &__item-category {
@@ -110,45 +232,17 @@
             text-align: center;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
         }
-        &__remove {
-            display: none;
-            position: absolute;
-            top: 60px;
-            right: 45px;
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            font-size: 16px;
-            line-height: 28px;
-            text-align: center;
-            cursor: pointer;
-            z-index: 10;
-            &:hover {
-                background: rgba(0, 0, 0, 0.8);
-            }
-        }
-        &__controls {
-            margin-top: 0.5rem;
-            input[type="range"] {
-                width: 100%;
-            }
-        }
         &__item-title {
             margin: 1rem;
-            padding: 1rem 0;
             font-size: 1.3rem;
             font-weight: 600;
-            position: relative;
-            display: inline-block;
             color: #fff;
+            position: relative;
             &::after {
                 content: "";
                 position: absolute;
                 left: 0;
-                bottom: -4px; // espace sous le texte
+                bottom: -4px;
                 width: 100%;
                 height: 2px;
                 background: linear-gradient(90deg, #6b46c1, #9f7aea);
@@ -158,15 +252,8 @@
                 transition: transform 0.3s ease;
             }
             &:hover::after {
-                transform: scaleX(1); // effet soulignement animé au hover
+                transform: scaleX(1);
             }
-        }
-        &__item-meta {
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            color: #fff;
-            display: flex;
-            justify-content: space-between;
         }
         &__item-price {
             position: absolute;
@@ -177,7 +264,7 @@
             padding: 0.4rem 1.8rem;
             border-radius: 8px;
             font-weight: 700;
-            font-size: .9rem;
+            font-size: 0.9rem;
             z-index: 20;
         }
         &__item-attributes {
@@ -200,6 +287,99 @@
                     font-size: 1rem;
                 }
             }
+        }
+    }
+}
+
+
+/*======================================
+=         TABLEAU DASHBOARD            =
+======================================*/
+
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    thead {
+        background: linear-gradient(135deg, #5a3ec7, #007bff);
+        color: #fff;
+        text-align: left;
+        th {
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            &:first-child {
+                border-top-left-radius: 10px;
+            }
+            &:last-child {
+                border-top-right-radius: 10px;
+            }
+        }
+    }
+    tbody {
+        tr {
+            border-bottom: 1px solid #e2e2e8;
+            transition: background 0.3s ease;
+            &:hover {
+                background: #f5f5f5;
+            }
+            td {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+                color: #3e2d64;
+                vertical-align: middle;
+            }
+        }
+    }
+}
+
+
+/* Actions boutons */
+
+.btn-edit,
+.btn-delete {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-edit {
+    background: #f0f0ff;
+    color: #5a3ec7;
+    &:hover {
+        background: #5a3ec7;
+        color: #fff;
+    }
+}
+
+.btn-delete {
+    background: #ffe0e0;
+    color: #c72e2e;
+    &:hover {
+        background: #c72e2e;
+        color: #fff;
+    }
+}
+
+
+/* Responsive */
+
+@media (max-width: 768px) {
+    .dashboard-table {
+        font-size: 0.85rem;
+        thead {
+            th {
+                padding: 0.5rem 0.75rem;
+            }
+        }
+        tbody td {
+            padding: 0.5rem 0.75rem;
         }
     }
 }

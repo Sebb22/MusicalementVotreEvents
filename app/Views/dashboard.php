@@ -1,83 +1,147 @@
 <section class="dashboard">
   <h1 class="dashboard__title">Gestion des articles</h1>
 
-  <!-- Formulaire d'ajout d'article -->
-  <form class="dashboard-form" action="/dashboard/add" method="POST" enctype="multipart/form-data">
-    <!-- Sélection de catégorie -->
-    <div class="dashboard-form__group">
-      <label for="location_id" class="dashboard-form__label">Sélectionnez une catégorie</label>
-      <select id="location_id" name="location_id" class="dashboard-form__input" required>
-        <option value="">-- Choisissez --</option>
-        <?php foreach ($locations as $location): ?>
-          <option value="<?= $location['id'] ?>"><?= htmlspecialchars($location['name']) ?></option>
-        <?php endforeach; ?>
-      </select>
-    </div>
+  <!-- Onglets -->
+  <div class="dashboard-tabs">
+    <button class="dashboard-tab active" data-tab="form">Formulaire</button>
+    <button class="dashboard-tab" data-tab="list">Liste des articles</button>
+  </div>
 
-    <!-- Nom de l’article -->
-    <div class="dashboard-form__group">
-      <label for="name" class="dashboard-form__label">Nom de l’article</label>
-      <input type="text" id="name" name="name" class="dashboard-form__input" placeholder="Ex: Château Gonflable" required>
-    </div>
+  <!-- Panneaux -->
+  <div class="dashboard-panes">
+    <!-- Formulaire (ajout / édition) -->
+    <div id="tab-form" class="dashboard-pane active">
+      <form id="article-form" class="dashboard-form" action="/dashboard/add" method="POST" enctype="multipart/form-data">
+        <!-- Champ caché pour savoir si on est en mode édition -->
+        <input type="hidden" id="article-id" name="id" value="">
 
-    <!-- Prix -->
-    <div class="dashboard-form__group">
-      <label for="prix" class="dashboard-form__label">Tarif (€)</label>
-      <input type="number" id="prix" name="prix" class="dashboard-form__input" placeholder="Ex: 120" step="0.01" min="0" required>
-    </div>
+        <!-- Sélection de catégorie -->
+        <div class="dashboard-form__group">
+          <label for="location_id" class="dashboard-form__label">Sélectionnez une catégorie</label>
+          <select id="location_id" name="location_id" class="dashboard-form__input" required>
+            <option value="">-- Choisissez --</option>
+            <?php if (!empty($locations) && is_array($locations)): ?>
+              <?php foreach ($locations as $location): ?>
+                <option value="<?= htmlspecialchars($location['id']) ?>">
+                  <?= htmlspecialchars($location['name']) ?>
+                </option>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <option value="">-- Aucune catégorie disponible --</option>
+            <?php endif; ?>
+          </select>
+        </div>
 
-    <!-- Stock -->
-    <div class="dashboard-form__group">
-      <label for="stock" class="dashboard-form__label">Stock</label>
-      <input type="number" id="stock" name="stock" class="dashboard-form__input" placeholder="Ex: 5" min="0" required>
-    </div>
-
-    <!-- Disponibilité -->
-    <div class="dashboard-form__group">
-      <label for="availability" class="dashboard-form__label">Disponibilité</label>
-      <select id="availability" name="availability" class="dashboard-form__input" required>
-        <option value="1">Disponible</option>
-        <option value="0">Indisponible</option>
-      </select>
-    </div>
-
-    <!-- Attributs dynamiques -->
-    <div id="attributes" class="dashboard-form__attributes"></div>
-
-    <!-- Upload image -->
-    <div class="dashboard-form__group">
-      <label for="images" class="dashboard-form__label">Image principale</label>
-      <input type="file" id="images" name="images" class="dashboard-form__input" accept="image/*">
-    </div>
-
-    <button type="submit" class="dashboard-form__submit">Ajouter</button>
-  </form>
-
-  <!-- Aperçu -->
-  <div class="dashboard-preview">
-    <h2>Aperçu</h2>
-    <h3 class="preview__item-category" id="preview-category">Catégorie : -</h3>
+        <!-- Nom de l’article -->
+        <div class="dashboard-form__group">
+          <label for="name" class="dashboard-form__label">Nom de l’article</label>
+          <input type="text" id="name" name="name" class="dashboard-form__input" placeholder="Ex: Château Gonflable" required>
+        </div>
 
 
-    <div class="preview">
-      <div id="preview-container" class="preview__container">
-        <img id="preview-main-image" src="https://via.placeholder.com/400x250?text=Aperçu" alt="Aperçu produit">
-        <button id="remove-image" type="button" class="preview__remove" title="Supprimer l’image">✕</button>
-        <span class="preview__item-price" id="preview-price">0 €</span>
+
+        <!-- Prix -->
+        <div class="dashboard-form__group">
+          <label for="price" class="dashboard-form__label">Tarif (€)</label>
+          <input type="number" id="price" name="price" class="dashboard-form__input" placeholder="Ex: 120" step="0.01" min="0" required>
+        </div>
+
+        <!-- Stock -->
+        <div class="dashboard-form__group">
+          <label for="stock" class="dashboard-form__label">Stock</label>
+          <input type="number" id="stock" name="stock" class="dashboard-form__input" placeholder="Ex: 5" min="0" required>
+        </div>
+
+        <!-- Disponibilité -->
+        <div class="dashboard-form__group">
+          <label for="availability" class="dashboard-form__label">Disponibilité</label>
+          <select id="availability" name="availability" class="dashboard-form__input" required>
+            <option value="1">Disponible</option>
+            <option value="0">Indisponible</option>
+          </select>
+        </div>
+
+        <!-- Attributs dynamiques -->
+        <div id="attributes" class="dashboard-form__attributes"></div>
+
+        <!-- Upload image (un seul fichier pour l'instant) -->
+        <div class="dashboard-form__group">
+          <label for="image" class="dashboard-form__label">Image principale</label>
+          <input type="file" id="image" name="image" class="dashboard-form__input" accept="image/*">
+        </div>
+
+        <button type="submit" class="dashboard-form__submit">Ajouter</button>
+      </form>
+
+      <!-- Aperçu -->
+      <div class="dashboard-preview">
+        <h2>Aperçu</h2>
+        <h3 class="preview__item-category" id="preview-category">Catégorie : -</h3>
+
+        <div class="preview">
+          <div id="preview-container" class="preview__container">
+            <img id="preview-main-image" src="https://via.placeholder.com/400x250?text=Aperçu" alt="Aperçu produit">
+            <button id="remove-image" type="button" class="preview__remove" title="Supprimer l’image">✕</button>
+            <span class="preview__item-price" id="preview-price">0 €</span>
+          </div>
+
+          <div class="preview__controls">
+            <label for="resize">Zoom</label>
+            <input type="range" id="resize" min="50" max="200" value="100">
+          </div>
+
+          <h3 class="preview__item-title" id="preview-name">Nom de l’article</h3>
+          <div class="preview__item-meta">
+            <p id="preview-stock">Stock : 0</p>
+            <p id="preview-availability">Disponibilité : Oui</p>
+          </div>
+
+          <div class="preview__item-attributes" id="preview-attributes"></div>
+        </div>
       </div>
-
-      <div class="preview__controls">
-        <label for="resize">Zoom</label>
-        <input type="range" id="resize" min="50" max="200" value="100">
-      </div>
-
-      <h3 class="preview__item-title" id="preview-name">Nom de l’article</h3>
-      <div class="preview__item-meta">
-        <p id="preview-stock">Stock : 0</p>
-        <p id="preview-availability">Disponibilité : Oui</p>
-      </div>
-
-      <div class="preview__item-attributes" id="preview-attributes"></div>
     </div>
+
+    <!-- Liste des articles -->
+    <div id="tab-list" class="dashboard-pane">
+      <table class="dashboard-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Catégorie</th>
+            <th>Prix</th>
+            <th>Stock</th>
+            <th>Disponibilité</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($categories as $item): ?>
+            <tr data-item='<?= json_encode([
+                              'id' => $item->id,
+                              'name' => $item->name,
+                              'price' => $item->price,
+                              'stock' => $item->stock,
+                              'availability' => $item->availability,
+                              'location_id' => $item->location_id,
+                              'location_name' => $item->location_name ?? '',
+                              'main_image' => $item->main_image ?? '',
+                              'attributes' => $item->attributes ?? []
+                            ]) ?>'>
+              <td><?= htmlspecialchars($item->name) ?></td>
+              <td><?= htmlspecialchars($item->location_name ?? '-') ?></td>
+              <td><?= number_format($item->price, 2, ',', ' ') ?> €</td>
+              <td><?= $item->stock ?></td>
+              <td><?= $item->availability ? 'Disponible' : 'Indisponible' ?></td>
+              <td>
+                <button type="button" class="btn-edit edit-article">✏️</button>
+                <a href="/dashboard/delete/<?= $item->id ?>" class="btn-delete" onclick="return confirm('Supprimer cet article ?')">🗑️</a>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+
+
   </div>
 </section>
