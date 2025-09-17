@@ -1,3 +1,4 @@
+// dashboard.js
 import { initTabs } from '../dashboard/dashboardTabsHandler.js';
 import { renderAttributes } from '../dashboard/dashboardItemsAttributesHandler.js';
 import { initPreview } from '../dashboard/dashboardPreviewHandler.js';
@@ -6,7 +7,7 @@ import { initEditArticle } from '../dashboard/dashboardItemEditHandler.js';
 
 export function initDashboard() {
 
-    // --- Initialisation des onglets ---
+    // --- Onglets ---
     initTabs();
 
     // --- Sélecteurs DOM ---
@@ -32,7 +33,6 @@ export function initDashboard() {
     const imageInput = document.getElementById('image');
 
     // --- Vérification des éléments critiques ---
-    // Permet de détecter si un input ou preview manque dans le DOM
     const requiredElements = {
         locationSelect,
         attributesContainer,
@@ -52,37 +52,27 @@ export function initDashboard() {
         removeBtn,
         imageInput
     };
-
     Object.entries(requiredElements).forEach(([key, el]) => {
-        if (!el) {
-            console.warn(`⚠️ ${key} manquant dans le DOM`, {
-                [key]: el });
-        }
+        if (!el) console.warn(`⚠️ ${key} manquant dans le DOM`, {
+            [key]: el });
     });
 
-    // --- Sécurité : si les éléments essentiels n’existent pas, on stoppe ---
-    if (!locationSelect || !attributesContainer || !previewAttributes || !previewCategory) {
-        return;
-    }
+    if (!locationSelect || !attributesContainer || !previewAttributes || !previewCategory) return;
 
-    // --- Gestion des attributs dynamiques selon la catégorie sélectionnée ---
+    // --- Attributs dynamiques ---
     locationSelect.addEventListener('change', e => {
         const selectedOption = locationSelect.options[locationSelect.selectedIndex];
-        previewCategory.textContent = selectedOption.value ?
-            `Catégorie : ${selectedOption.text}` :
-            "Catégorie : -";
-
+        previewCategory.textContent = selectedOption.value ? `Catégorie : ${selectedOption.text}` : "Catégorie : -";
         renderAttributes(e.target.value, attributesContainer, previewAttributes);
     });
 
-    // --- Initialisation si une valeur est déjà sélectionnée au chargement ---
     if (locationSelect.value) {
         const selectedOption = locationSelect.options[locationSelect.selectedIndex];
         previewCategory.textContent = `Catégorie : ${selectedOption.text}`;
         renderAttributes(locationSelect.value, attributesContainer, previewAttributes);
     }
 
-    // --- Initialisation du preview des champs ---
+    // --- Preview des champs ---
     initPreview({
         nameInput,
         priceInput,
@@ -94,10 +84,10 @@ export function initDashboard() {
         previewAvailability
     });
 
-    // --- Initialisation du preview image (upload, zoom, drag) ---
+    // --- Preview image ---
     initImagePreview({ imageInput, previewMainImage, resizeInput, container, removeBtn });
 
-    // --- Gestion de l’édition des articles existants ---
+    // --- Edition des articles existants ---
     initEditArticle({
         tbody: document.querySelector('#tab-list tbody'),
         locationSelect,
@@ -107,7 +97,10 @@ export function initDashboard() {
         availabilityInput,
         previewCategory,
         previewMainImage,
-        removeBtn
+        removeBtn,
+        previewName,
+        previewPrice,
+        previewStock,
+        previewAvailability
     });
-
 }
