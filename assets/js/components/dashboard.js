@@ -8,7 +8,7 @@ export function initDashboardForm() {
     const priceInput = document.getElementById('price');
     const stockInput = document.getElementById('stock');
     const availabilityInput = document.getElementById('availability');
-    const imageInput = document.getElementById('image'); // <-- corrigé
+    const imageInput = document.getElementById('image'); // attention au nom exact
 
     const previewName = document.getElementById('preview-name');
     const previewPrice = document.getElementById('preview-price');
@@ -76,6 +76,7 @@ export function initDashboardForm() {
             const input = div.querySelector('input');
             const span = attrDiv.querySelector('span');
             input.addEventListener('input', () => {
+                span.textContent = input.value || '-';
                 if (attr.name === 'nb_personnes') span.textContent = input.value ? `Jusqu’à ${input.value} pers.` : '-';
                 else if (attr.name === 'age_requis') span.textContent = input.value ? `Âge : ${input.value}` : '-';
                 else if (attr.name === 'dimensions') span.textContent = input.value ? `Dimensions : ${input.value}` : '-';
@@ -83,17 +84,13 @@ export function initDashboardForm() {
                 else if (attr.name === 'nb_joueurs') span.textContent = input.value ? `Joueurs : ${input.value}` : '-';
                 else if (attr.name === 'poids') span.textContent = input.value ? `Poids : ${input.value}` : '-';
                 else if (attr.name === 'taille') span.textContent = input.value ? `Taille : ${input.value}` : '-';
-                else span.textContent = input.value || '-';
             });
         });
     }
 
-    // --- Mettre à jour la catégorie sélectionnée ---
     locationSelect.addEventListener('change', e => {
         const selectedOption = locationSelect.options[locationSelect.selectedIndex];
-        previewCategory.textContent = selectedOption.value ?
-            `Catégorie : ${selectedOption.text}` :
-            "Catégorie : -";
+        previewCategory.textContent = selectedOption.value ? `Catégorie : ${selectedOption.text}` : "Catégorie : -";
         renderAttributes(e.target.value);
     });
 
@@ -109,7 +106,7 @@ export function initDashboardForm() {
     if (stockInput) stockInput.addEventListener('input', () => previewStock.textContent = stockInput.value ? `Stock : ${stockInput.value}` : 'Stock : 0');
     if (availabilityInput) availabilityInput.addEventListener('change', () => previewAvailability.textContent = availabilityInput.value == 1 ? 'Disponibilité : Disponible' : 'Disponibilité : Indisponible');
 
-    // --- Upload image ---
+    // --- Upload image + drag/zoom ---
     let translateX = 0,
         translateY = 0,
         scale = 0.9;
@@ -118,12 +115,10 @@ export function initDashboardForm() {
 
     if (imageInput) {
         imageInput.addEventListener('change', () => {
-            console.log(imageInput.files);
             if (imageInput.files.length > 0) {
                 const file = imageInput.files[0];
                 const reader = new FileReader();
                 reader.onload = e => {
-                    console.log("Image loaded!");
                     previewMainImage.src = e.target.result;
                     removeBtn.style.display = "block";
                     applyTransform(scale);
@@ -133,7 +128,6 @@ export function initDashboardForm() {
         });
     }
 
-    // Slider zoom
     if (resizeInput) {
         resizeInput.value = 90;
         resizeInput.addEventListener('input', () => {
@@ -143,7 +137,6 @@ export function initDashboardForm() {
         });
     }
 
-    // Drag image
     if (container) {
         container.addEventListener('mousedown', e => {
             if (scale <= 1) return;
@@ -171,10 +164,7 @@ export function initDashboardForm() {
         });
     }
 
-    // Supprimer image
     if (removeBtn) removeBtn.addEventListener('click', resetImage);
-
-    // Double-clic reset
     if (previewMainImage) previewMainImage.addEventListener('dblclick', () => {
         translateX = 0;
         translateY = 0;
@@ -183,7 +173,6 @@ export function initDashboardForm() {
         applyTransform(scale);
     });
 
-    // --- Fonctions internes ---
     function applyTransform(scale) {
         previewMainImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
     }
@@ -208,4 +197,46 @@ export function initDashboardForm() {
         applyTransform(scale);
         removeBtn.style.display = "none";
     }
+
+    // --- Édition d’un article ---
+    const editButtons = document.querySelectorAll('.edit-article');
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            //console.log('yo');
+            const tr = btn.closest('tr');
+            if (!tr) return;
+            //console.log('yo');
+            const editItem = JSON.parse(tr.dataset.item);
+            console.log(editItem);
+            document.getElementById('article-id').value = editItem.id || '';
+            locationSelect.value = editItem.location_id || '';
+            nameInput.value = editItem.name || '';
+            priceInput.value = editItem.price || '';
+            stockInput.value = editItem.stock || '';
+            availabilityInput.value = editItem.availability != null ? editItem.availability : 1;
+
+            const selectedOption = locationSelect.options[locationSelect.selectedIndex];
+            previewCategory.textContent = selectedOption.value ? `Catégorie : ${selectedOption.text}` : "Catégorie : -";
+
+            renderAttributes(locationSelect.value);
+
+            if (editItem.attributes) {
+                Object.entries(editItem.attributes).forEach(([key, value]) => {
+                    const input = document.getElementById(key);
+                    if (input) input.value = value;
+                    const previewSpan = document.getElementById(`preview-${key}`);
+                    if (previewSpan) previewSpan.textContent = value;
+                });
+            }
+
+            if (editItem.main_image) {
+                previewMainImage.src = editItem.main_image;
+                removeBtn.style.display = "block";
+            } else {
+                resetImage();
+            }
+
+            document.getElementById('tab-form').scrollIntoView({ behavior: 'smooth' });
+        });
+    });
 }

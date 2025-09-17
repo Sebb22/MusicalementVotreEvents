@@ -13,18 +13,21 @@ class LocationPicture
         $this->pdo = $pdo;
     }
 
+    
     public function getPicturesByItem(int $itemId): array
     {
         $stmt = $this->pdo->prepare("SELECT * FROM location_images WHERE item_id = :item_id");
         $stmt->execute(['item_id' => $itemId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_OBJ); // <-- ici
     }
+    
 
     // Alias pour compatibilité
     public function getByItem(int $itemId): array
     {
         return $this->getPicturesByItem($itemId);
     }
+    
 
     public function addPicture(int $itemId, string $path, bool $isMain = false): bool
     {

@@ -28,34 +28,82 @@ class LocationItem
         return $stmt->fetchAll(PDO::FETCH_OBJ);
     }
 
-    // Dans LocationItem.php
     public function allWithPictures(): array
     {
         $stmt = $this->db->query("SELECT * FROM location_items");
         $items = $stmt->fetchAll(PDO::FETCH_OBJ);
-
+    
         $pictureModel = new LocationPicture($this->db);
-
+    
         foreach ($items as $item) {
-            // 🔹 Ajouter les images
-            $item->pictures = $pictureModel->getPicturesByItem($item->id);
-
-            // 🔹 Ajouter les attributs
-            $this->id = $item->id; // nécessaire pour que getAttributes() sache quel item charger
+            // 🔹 Récupérer les images
+            $pictures = $pictureModel->getPicturesByItem($item->id) ?? [];
+            $item->pictures = $pictures;
+    
+            // 🔹 Définir l'image principale
+            $item->main_image = null;
+    
+            if (!empty($pictures)) {
+                // Chercher l'image principale
+                $mainPic = null;
+                foreach ($pictures as $pic) {
+                    if (is_object($pic) && !empty($pic->is_main) && $pic->is_main == 1) {
+                        $mainPic = $pic;
+                        break;
+                    }
+                }
+    
+                if ($mainPic && isset($mainPic->image_path)) {
+                    $item->main_image = $mainPic->image_path;
+                } elseif (isset($pictures[0]) && is_object($pictures[0]) && isset($pictures[0]->image_path)) {
+                    $item->main_image = $pictures[0]->image_path;
+                }
+            }
+    
+            // 🔹 Attributs
+            $this->id = $item->id;
             $item->attributes = $this->getAttributes();
         }
-
+    
         return $items;
     }
-
-
-
+    
     public function find(int $id): ?object
     {
         $stmt = $this->db->prepare("SELECT * FROM location_items WHERE id = :id");
         $stmt->execute(['id' => $id]);
-        return $stmt->fetch(PDO::FETCH_OBJ) ?: null;
+        $item = $stmt->fetch(PDO::FETCH_OBJ);
+    
+        if (!$item) return null;
+    
+        $pictureModel = new LocationPicture($this->db);
+        $pictures = $pictureModel->getPicturesByItem($item->id) ?? [];
+        $item->pictures = $pictures;
+    
+        $item->main_image = null;
+        if (!empty($pictures)) {
+            $mainPic = null;
+            foreach ($pictures as $pic) {
+                if (is_object($pic) && !empty($pic->is_main) && $pic->is_main == 1) {
+                    $mainPic = $pic;
+                    break;
+                }
+            }
+    
+            if ($mainPic && isset($mainPic->image_path)) {
+                $item->main_image = $mainPic->image_path;
+            } elseif (isset($pictures[0]) && is_object($pictures[0]) && isset($pictures[0]->image_path)) {
+                $item->main_image = $pictures[0]->image_path;
+            }
+        }
+    
+        $this->id = $item->id;
+        $item->attributes = $this->getAttributes();
+    
+        return $item;
     }
+    
+
 
     public function save(): void
     {
@@ -105,32 +153,29 @@ class LocationItem
     {
         $stmt = $this->db->prepare("SELECT name, value FROM location_attributes WHERE item_id = :item_id");
         $stmt->execute(['item_id' => $this->id]);
-        return $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // ['taille' => '3m', 'age_requis' => '6+']
+        return $stmt->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
     }
 
     public function setAttribute(string $name, string $value): void
     {
-        // Vérifier si l'attribut existe déjà
         $stmt = $this->db->prepare("
-        SELECT id FROM location_attributes 
-        WHERE item_id = :item_id AND name = :name
-    ");
+            SELECT id FROM location_attributes 
+            WHERE item_id = :item_id AND name = :name
+        ");
         $stmt->execute(['item_id' => $this->id, 'name' => $name]);
         $attr = $stmt->fetch(PDO::FETCH_OBJ);
 
         if ($attr) {
-            // Update si déjà existant
             $update = $this->db->prepare("
-            UPDATE location_attributes SET value = :value 
-            WHERE id = :id
-        ");
+                UPDATE location_attributes SET value = :value 
+                WHERE id = :id
+            ");
             $update->execute(['value' => $value, 'id' => $attr->id]);
         } else {
-            // Insert sinon
             $insert = $this->db->prepare("
-            INSERT INTO location_attributes (item_id, name, value)
-            VALUES (:item_id, :name, :value)
-        ");
+                INSERT INTO location_attributes (item_id, name, value)
+                VALUES (:item_id, :name, :value)
+            ");
             $insert->execute([
                 'item_id' => $this->id,
                 'name'    => $name,
@@ -142,15 +187,15 @@ class LocationItem
     public function deleteAttribute(string $name): void
     {
         $stmt = $this->db->prepare("
-        DELETE FROM location_attributes 
-        WHERE item_id = :item_id AND name = :name
-    ");
+            DELETE FROM location_attributes 
+            WHERE item_id = :item_id AND name = :name
+        ");
         $stmt->execute(['item_id' => $this->id, 'name' => $name]);
     }
 
     public function getPictures(): array
     {
-        $pictureModel = new LocationPicture($this->pdo);
-        return $pictureModel->getPicturesByItem($this->id);
+        $pictureModel = new LocationPicture($this->db);
+        return $pictureModel->getPicturesByItem($this->id) ?? [];
     }
 }
