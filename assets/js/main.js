@@ -7,7 +7,7 @@ import { initSmoothScroll } from './animations/smoothScroll.js';
 import { initBurgerMenu } from './components/burgerMenu.js';
 import { initHeaderScroll } from './components/headerScroll.js';
 import { initCards } from './components/cards.js';
-import { initDashboardForm } from './components/dashboard.js'; // <-- ajout
+import { initDashboard } from './components/dashboard.js'; // <-- ajout
 //import { initDashboardForm } from './components/dashboard.js';
 import FormPreview from './components/formPreview.js';
 
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initLocationModule();
     //applyMasonry();
     // Initialisation dashboard si présent
-    initDashboardForm();
+    initDashboard();
     //initDashboardEdit();
     initFormVerification();
     initSmoothScroll();
