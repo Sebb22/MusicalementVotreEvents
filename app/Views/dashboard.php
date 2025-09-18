@@ -116,7 +116,7 @@
         </thead>
         <tbody>
           <?php foreach ($categories as $item): ?>
-            <tr data-item='<?= json_encode([
+            <tr data-item="<?= htmlspecialchars(json_encode([
                               'id' => $item->id,
                               'name' => $item->name,
                               'price' => $item->price,
@@ -126,9 +126,9 @@
                               'location_name' => $item->location_name ?? '',
                               'main_image' => $item->main_image ?? '',
                               'attributes' => $item->attributes ?? []
-                            ]) ?>'>
+                            ]), ENT_QUOTES) ?>">
               <td><?= htmlspecialchars($item->name) ?></td>
-              <td><?= htmlspecialchars($item->location_name ?? '-') ?></td>
+              <td class="category-name"><?= htmlspecialchars($item->location_name ?? '-') ?></td>
               <td><?= number_format($item->price, 2, ',', ' ') ?> €</td>
               <td><?= $item->stock ?></td>
               <td><?= $item->availability ? 'Disponible' : 'Indisponible' ?></td>
@@ -139,6 +139,7 @@
             </tr>
           <?php endforeach; ?>
         </tbody>
+
       </table>
     </div>
 

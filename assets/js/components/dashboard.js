@@ -1,12 +1,12 @@
-// dashboard.js
+// assets/js/components/dashboard/dashboard.js
 import { initTabs } from '../dashboard/dashboardTabsHandler.js';
 import { renderAttributes } from '../dashboard/dashboardItemsAttributesHandler.js';
 import { initPreview } from '../dashboard/dashboardPreviewHandler.js';
 import { initImagePreview } from '../dashboard/dashboardImagePreviewHandler.js';
 import { initEditArticle } from '../dashboard/dashboardItemEditHandler.js';
+import { resetFormToAddMode } from '../dashboard/dashboardFormHandler.js'; // 👈 ajout
 
 export function initDashboard() {
-
     // --- Onglets ---
     initTabs();
 
@@ -54,7 +54,8 @@ export function initDashboard() {
     };
     Object.entries(requiredElements).forEach(([key, el]) => {
         if (!el) console.warn(`⚠️ ${key} manquant dans le DOM`, {
-            [key]: el });
+            [key]: el
+        });
     });
 
     if (!locationSelect || !attributesContainer || !previewAttributes || !previewCategory) return;
@@ -62,7 +63,9 @@ export function initDashboard() {
     // --- Attributs dynamiques ---
     locationSelect.addEventListener('change', e => {
         const selectedOption = locationSelect.options[locationSelect.selectedIndex];
-        previewCategory.textContent = selectedOption.value ? `Catégorie : ${selectedOption.text}` : "Catégorie : -";
+        previewCategory.textContent = selectedOption.value ?
+            `Catégorie : ${selectedOption.text}` :
+            "Catégorie : -";
         renderAttributes(e.target.value, attributesContainer, previewAttributes);
     });
 
@@ -103,4 +106,11 @@ export function initDashboard() {
         previewStock,
         previewAvailability
     });
+
+    // --- Reset du formulaire quand on clique sur "Formulaire" ---
+    const formTab = document.querySelector('.dashboard-tab[data-tab="form"]');
+    if (formTab) {
+        formTab.addEventListener('click', () => resetFormToAddMode());
+    }
+
 }

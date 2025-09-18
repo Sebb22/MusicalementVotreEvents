@@ -2,7 +2,7 @@
 
 import { initPreview } from './dashboardPreviewHandler.js';
 import { renderAttributes } from './dashboardItemsAttributesHandler.js';
-
+import { setFormToEditMode } from './dashboardFormHandler.js';
 /**
  * Initialise l'édition d'un article au clic sur un bouton "Edit".
  * Remplit le formulaire, génère les attributs dynamiques et met à jour la preview.
@@ -108,7 +108,9 @@ export function initEditArticle({
                 previewStock,
                 previewAvailability
             });
-
+            if (editItem.id) {
+                setFormToEditMode(editItem);
+            }
             // --- 7. Scroll vers le formulaire ---
             if (formPane) formPane.scrollIntoView({ behavior: 'smooth' });
         });
