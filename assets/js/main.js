@@ -7,8 +7,7 @@ import { initSmoothScroll } from './animations/smoothScroll.js';
 import { initBurgerMenu } from './components/burgerMenu.js';
 import { initHeaderScroll } from './components/headerScroll.js';
 import { initCards } from './components/cards.js';
-import { initDashboard } from './components/dashboard.js'; // <-- ajout
-//import { initDashboardForm } from './components/dashboard.js';
+import { initDashboardComponent } from './components/dashboard.js';
 import FormPreview from './components/formPreview.js';
 
 new FormPreview('#images', '#preview');
@@ -17,8 +16,7 @@ import { initFormVerification } from './components/formVerification.js';
 import { animationCardFlip } from './animations/flipAnimation.js';
 import { initLocationModule } from './components/localisationModule.js';
 import { animationPrestationsFlip } from './animations/prestationsCardFlipAnimation.js';
-//import { initDashboardEdit } from './components/dashboardEdit.js';
-//import { applyMasonry } from './animations/masonryEffectModule.js';
+
 // DOM ready
 document.addEventListener("DOMContentLoaded", () => {
     splitAndAnimateHeadline();
@@ -28,10 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
     initHeaderScroll();
     initCards();
     initLocationModule();
-    //applyMasonry();
+
     // Initialisation dashboard si présent
-    initDashboard();
-    //initDashboardEdit();
+    initDashboardComponent();
+
     initFormVerification();
     initSmoothScroll();
     animationPrestationsFlip();

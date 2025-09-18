@@ -1,71 +1,24 @@
-// assets/js/components/dashboard/dashboard.js
-import { initTabs } from '../dashboard/dashboardTabsHandler.js';
+// assets/js/components/dashboard/dashboardComponent.js
+
 import { renderAttributes } from '../dashboard/dashboardItemsAttributesHandler.js';
 import { initPreview } from '../dashboard/dashboardPreviewHandler.js';
 import { initImagePreview } from '../dashboard/dashboardImagePreviewHandler.js';
 import { initEditArticle } from '../dashboard/dashboardItemEditHandler.js';
-import { resetFormToAddMode } from '../dashboard/dashboardFormHandler.js'; // 👈 ajout
+import { initDashboard, resetFormToAddMode, formModeIndicator } from '../dashboard/dashboardHandler.js';
 
-export function initDashboard() {
-    // --- Onglets ---
-    initTabs();
-
-    // --- Sélecteurs DOM ---
+export function initDashboardComponent() {
     const locationSelect = document.getElementById('location_id');
     const attributesContainer = document.getElementById('attributes');
     const previewAttributes = document.getElementById('preview-attributes');
     const previewCategory = document.getElementById('preview-category');
 
-    const nameInput = document.getElementById('name');
-    const priceInput = document.getElementById('price');
-    const stockInput = document.getElementById('stock');
-    const availabilityInput = document.getElementById('availability');
-
-    const previewName = document.getElementById('preview-name');
-    const previewPrice = document.getElementById('preview-price');
-    const previewStock = document.getElementById('preview-stock');
-    const previewAvailability = document.getElementById('preview-availability');
-    const previewMainImage = document.getElementById('preview-main-image');
-
-    const resizeInput = document.getElementById('resize');
-    const container = document.getElementById('preview-container');
-    const removeBtn = document.getElementById('remove-image');
-    const imageInput = document.getElementById('image');
-
-    // --- Vérification des éléments critiques ---
-    const requiredElements = {
-        locationSelect,
-        attributesContainer,
-        previewAttributes,
-        previewCategory,
-        nameInput,
-        priceInput,
-        stockInput,
-        availabilityInput,
-        previewName,
-        previewPrice,
-        previewStock,
-        previewAvailability,
-        previewMainImage,
-        resizeInput,
-        container,
-        removeBtn,
-        imageInput
-    };
-    Object.entries(requiredElements).forEach(([key, el]) => {
-        if (!el) console.warn(`⚠️ ${key} manquant dans le DOM`, {
-            [key]: el
-        });
-    });
-
     if (!locationSelect || !attributesContainer || !previewAttributes || !previewCategory) return;
 
-    // --- Attributs dynamiques ---
+    initDashboard();
+
     locationSelect.addEventListener('change', e => {
         const selectedOption = locationSelect.options[locationSelect.selectedIndex];
-        previewCategory.textContent = selectedOption.value ?
-            `Catégorie : ${selectedOption.text}` :
-            "Catégorie : -";
+        previewCategory.textContent = selectedOption.value ? `Catégorie : ${selectedOption.text}` : "Catégorie : -";
         renderAttributes(e.target.value, attributesContainer, previewAttributes);
     });
 
@@ -75,42 +28,43 @@ export function initDashboard() {
         renderAttributes(locationSelect.value, attributesContainer, previewAttributes);
     }
 
-    // --- Preview des champs ---
     initPreview({
-        nameInput,
-        priceInput,
-        stockInput,
-        availabilityInput,
-        previewName,
-        previewPrice,
-        previewStock,
-        previewAvailability
+        nameInput: document.getElementById('name'),
+        priceInput: document.getElementById('price'),
+        stockInput: document.getElementById('stock'),
+        availabilityInput: document.getElementById('availability'),
+        previewName: document.getElementById('preview-name'),
+        previewPrice: document.getElementById('preview-price'),
+        previewStock: document.getElementById('preview-stock'),
+        previewAvailability: document.getElementById('preview-availability')
     });
 
-    // --- Preview image ---
-    initImagePreview({ imageInput, previewMainImage, resizeInput, container, removeBtn });
+    initImagePreview({
+        imageInput: document.getElementById('image'),
+        previewMainImage: document.getElementById('preview-main-image'),
+        resizeInput: document.getElementById('resize'),
+        container: document.getElementById('preview-container'),
+        removeBtn: document.getElementById('remove-image')
+    });
 
-    // --- Edition des articles existants ---
     initEditArticle({
         tbody: document.querySelector('#tab-list tbody'),
         locationSelect,
-        nameInput,
-        priceInput,
-        stockInput,
-        availabilityInput,
+        nameInput: document.getElementById('name'),
+        priceInput: document.getElementById('price'),
+        stockInput: document.getElementById('stock'),
+        availabilityInput: document.getElementById('availability'),
         previewCategory,
-        previewMainImage,
-        removeBtn,
-        previewName,
-        previewPrice,
-        previewStock,
-        previewAvailability
+        previewMainImage: document.getElementById('preview-main-image'),
+        removeBtn: document.getElementById('remove-image'),
+        previewName: document.getElementById('preview-name'),
+        previewPrice: document.getElementById('preview-price'),
+        previewStock: document.getElementById('preview-stock'),
+        previewAvailability: document.getElementById('preview-availability'),
+        submitBtn: document.querySelector('.dashboard-form__submit'),
+        formModeIndicator
     });
 
-    // --- Reset du formulaire quand on clique sur "Formulaire" ---
     const formTab = document.querySelector('.dashboard-tab[data-tab="form"]');
-    if (formTab) {
-        formTab.addEventListener('click', () => resetFormToAddMode());
-    }
-
+    if (formTab) formTab.addEventListener('click', resetFormToAddMode);
 }
