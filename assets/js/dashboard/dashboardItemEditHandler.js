@@ -64,24 +64,46 @@ export function initEditArticle({
             }
 
             // --- 4. Attributs dynamiques ---
-            if (editItem.attributes && typeof editItem.attributes === 'object') {
-                renderAttributes(editItem.location_id, document.getElementById('attributes'), document.getElementById('preview-attributes'));
-                Object.entries(editItem.attributes).forEach(([key, value]) => {
-                    const input = document.getElementById(key);
-                    const span = document.getElementById(`preview-${key}`);
-                    if (input) input.value = value;
-                    if (span) {
-                        span.textContent = value || '-';
-                        // Etiquettes spécifiques
-                        if (key === 'nb_personnes') span.textContent = value ? `Jusqu’à ${value} pers.` : '-';
-                        if (key === 'age_requis') span.textContent = value ? `Âge : ${value}` : '-';
-                        if (key === 'dimensions') span.textContent = value ? `Dimensions : ${value}` : '-';
-                        if (key === 'duree') span.textContent = value ? `Durée : ${value}` : '-';
-                        if (key === 'nb_joueurs') span.textContent = value ? `Joueurs : ${value}` : '-';
-                        if (key === 'poids') span.textContent = value ? `Poids : ${value}` : '-';
-                        if (key === 'taille') span.textContent = value ? `Taille : ${value}` : '-';
-                    }
-                });
+            const attributesContainer = document.getElementById('attributes');
+            const previewAttributes = document.getElementById('preview-attributes');
+            if (attributesContainer && previewAttributes) {
+                renderAttributes(editItem.location_id, attributesContainer, previewAttributes);
+
+                // Remplir les valeurs existantes dans les inputs et preview
+                if (editItem.attributes && typeof editItem.attributes === 'object') {
+                    Object.entries(editItem.attributes).forEach(([key, value]) => {
+                        const input = document.querySelector(`input[name="attributes[${key}]"]`);
+                        const span = document.getElementById(`preview-${key}`);
+                        if (input) input.value = value;
+                        if (span) {
+                            switch (key) {
+                                case 'nb_personnes':
+                                    span.textContent = value ? `Jusqu’à ${value} pers.` : '-';
+                                    break;
+                                case 'age_requis':
+                                    span.textContent = value ? `Âge : ${value}` : '-';
+                                    break;
+                                case 'dimensions':
+                                    span.textContent = value ? `Dimensions : ${value}` : '-';
+                                    break;
+                                case 'duree':
+                                    span.textContent = value ? `Durée : ${value}` : '-';
+                                    break;
+                                case 'nb_joueurs':
+                                    span.textContent = value ? `Joueurs : ${value}` : '-';
+                                    break;
+                                case 'poids':
+                                    span.textContent = value ? `Poids : ${value}` : '-';
+                                    break;
+                                case 'taille':
+                                    span.textContent = value ? `Taille : ${value}` : '-';
+                                    break;
+                                default:
+                                    span.textContent = value || '-';
+                            }
+                        }
+                    });
+                }
             }
 
             // --- 5. Image ---

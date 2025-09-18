@@ -16,6 +16,7 @@ import { initFormVerification } from './components/formVerification.js';
 import { animationCardFlip } from './animations/flipAnimation.js';
 import { initLocationModule } from './components/localisationModule.js';
 import { animationPrestationsFlip } from './animations/prestationsCardFlipAnimation.js';
+import { initTableFilter } from './components/filterHandler.js';
 
 // DOM ready
 document.addEventListener("DOMContentLoaded", () => {
@@ -34,4 +35,5 @@ document.addEventListener("DOMContentLoaded", () => {
     initSmoothScroll();
     animationPrestationsFlip();
     animationCardFlip();
+    initTableFilter('.filterable-table', '.table-filters');
 });

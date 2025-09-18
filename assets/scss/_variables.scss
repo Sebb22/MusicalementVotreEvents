@@ -4,4 +4,8 @@
     --color-accent: #8b5cf6;
     --color-accent-alt: #22d3ee;
     --transition-fast: 0.3s ease;
-}
+} // NE PAS mettre dans :root
+$primary-color: #5a3ec7 !default;
+$secondary-color: #007bff !default;
+$accent-color: #ff7f50 !default;
+$anim-duration: 0.8s !default;

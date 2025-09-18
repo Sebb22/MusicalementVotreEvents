@@ -9,6 +9,10 @@
     <button class="dashboard-tab mobile-toggle-preview" data-tab="preview">Aperçu</button>
   </div>
 
+
+
+
+
   <!-- Panneaux -->
   <div class="dashboard-panes">
     <!-- Formulaire + Preview côte à côte -->

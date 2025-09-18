@@ -23,7 +23,6 @@ export function renderAttributes(locId, attributesContainer, previewAttributes) 
     // --- Vérifier si locId existe dans notre configuration ---
     const attrs = locationAttributes[locId];
     if (!attrs) {
-        // Aucun attribut défini pour cette catégorie → afficher un message
         const msg = document.createElement('p');
         msg.textContent = "Pas d’attributs disponibles pour cette catégorie";
         msg.style.fontStyle = 'italic';
@@ -31,15 +30,17 @@ export function renderAttributes(locId, attributesContainer, previewAttributes) 
         return;
     }
 
-    // --- Boucle sur les attributs pour générer formulaire et preview ---
     attrs.forEach(attr => {
         // --- Formulaire ---
         const div = document.createElement('div');
         div.className = 'dashboard-form__group';
         div.innerHTML = `
-      <label class="dashboard-form__label" for="${attr.name}">${attr.label}</label>
-      <input class="dashboard-form__input" type="${attr.type}" id="${attr.name}" name="${attr.name}" placeholder="${attr.placeholder}">
-    `;
+            <label class="dashboard-form__label" for="${attr.name}">${attr.label}</label>
+            <input class="dashboard-form__input" type="${attr.type}" 
+                   id="${attr.name}" 
+                   name="attributes[${attr.name}]" 
+                   placeholder="${attr.placeholder}">
+        `;
         attributesContainer.appendChild(div);
 
         // --- Preview ---
@@ -53,7 +54,6 @@ export function renderAttributes(locId, attributesContainer, previewAttributes) 
         const span = attrDiv.querySelector('span');
         input.addEventListener('input', () => {
             let val = input.value || '-';
-            // Gestion de l’affichage spécifique pour chaque type d’attribut
             switch (attr.name) {
                 case 'nb_personnes':
                     val = input.value ? `Jusqu’à ${input.value} pers.` : '-';
