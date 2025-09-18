@@ -68,14 +68,27 @@ class LocationItem
         return $items;
     }
     
-    public function find(int $id): ?object
+    public function find(int $id): ?self
     {
         $stmt = $this->db->prepare("SELECT * FROM location_items WHERE id = :id");
         $stmt->execute(['id' => $id]);
-        $item = $stmt->fetch(PDO::FETCH_OBJ);
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
     
-        if (!$item) return null;
+        if (!$data) {
+            return null;
+        }
     
+        // 🔹 Crée une instance de LocationItem
+        $item = new self($this->db);
+    
+        // Hydrate les propriétés
+        foreach ($data as $key => $value) {
+            if (property_exists($item, $key)) {
+                $item->$key = $value;
+            }
+        }
+    
+        // 🔹 Ajout des images
         $pictureModel = new LocationPicture($this->db);
         $pictures = $pictureModel->getPicturesByItem($item->id) ?? [];
         $item->pictures = $pictures;
@@ -97,11 +110,12 @@ class LocationItem
             }
         }
     
-        $this->id = $item->id;
-        $item->attributes = $this->getAttributes();
+        // 🔹 Ajout des attributs
+        $item->attributes = $item->getAttributes();
     
         return $item;
     }
+    
     
 
 

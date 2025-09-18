@@ -1,7 +1,3 @@
-/*======================================
-=            DASHBOARD PREMIUM         =
-======================================*/
-
 $primary-color: #5a3ec7;
 $secondary-color: #007bff;
 $accent-color: #ff7f50;
@@ -39,9 +35,7 @@ $anim-duration: 0.8s;
             border-radius: 2px;
         }
     }
-    /*======================================
-    =                 ONGLETS             =
-    ======================================*/
+    /* Onglets */
     &-tabs {
         grid-column: 1 / -1;
         display: flex;
@@ -64,9 +58,9 @@ $anim-duration: 0.8s;
                 transform: translateY(-2px);
             }
             &.active {
-                background: linear-gradient(135deg, #007bff, #5a3ec7);
+                background: linear-gradient(135deg, $secondary-color, $primary-color);
                 color: #fff;
-                border-color: #5a3ec7;
+                border-color: $primary-color;
                 &::before {
                     content: "";
                     position: absolute;
@@ -74,7 +68,7 @@ $anim-duration: 0.8s;
                     bottom: 0;
                     height: 4px;
                     width: 100%;
-                    background: linear-gradient(90deg, #ff7f50, #6b46c1);
+                    background: linear-gradient(90deg, $accent-color, $primary-color);
                     border-radius: 2px;
                     transform: scaleX(0);
                     transform-origin: left;
@@ -82,51 +76,62 @@ $anim-duration: 0.8s;
                 }
             }
         }
-    }
-    /*======================================
-    =      PANNEAUX : FORM & PREVIEW      =
-    ======================================*/
-    &-panes {
-        grid-column: 1 / -1;
-        display: flex;
-        gap: 2rem;
-        flex-direction: column;
-        .dashboard-pane {
+        /* Masquer le bouton Aperçu par défaut (desktop) */
+        .mobile-toggle-preview {
             display: none;
-            opacity: 0;
-            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        @media (max-width: 767px) {
+            .mobile-toggle-preview {
+                display: inline-flex;
+            }
+        }
+    }
+    /* Panneaux */
+    &-panes {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        justify-content: center;
+        align-items: center;
+        .dashboard-pane {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
             &.active {
-                display: flex;
-                opacity: 1;
-                gap: 2rem;
-                align-items: flex-start;
                 .dashboard-form,
                 .dashboard-preview {
-                    flex: 1;
-                    min-width: 0;
+                    width: 30vw;
                     animation: fadeSlideIn 0.4s ease forwards;
+                }
+                #tab-list {
+                    width: 80vw;
                 }
             }
         }
         @media (min-width: 768px) {
             flex-direction: row;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 2%;
             .dashboard-pane {
-                display: flex; // toutes les panes visibles (form + preview)
-                position: relative !important;
-                transform: none !important;
-                opacity: 1 !important;
-            }
-            .dashboard-pane:not(.active) {
-                display: flex; // liste et preview toujours visibles
+                flex: 0 0 49%; // plus large
+                display: none;
+                flex-direction: column;
+                &.active,
+                &.desktop-visible {
+                    display: flex;
+                }
+                .dashboard-form,
+                .dashboard-preview {
+                    width: 100%;
+                }
             }
         }
     }
 }
 
 
-/*======================================
-=         FORMULAIRE DASHBOARD          =
-======================================*/
+/* Formulaire */
 
 .dashboard-form {
     display: flex;
@@ -194,9 +199,7 @@ $anim-duration: 0.8s;
 }
 
 
-/*======================================
-=         PREVIEW DASHBOARD             =
-======================================*/
+/* Preview */
 
 .dashboard-preview {
     background: rgba(149, 129, 161, 0.7);
@@ -229,13 +232,14 @@ $anim-duration: 0.8s;
             display: flex;
             justify-content: center;
             align-items: center;
+            border: 2px solid rgba(255, 255, 255, 0.2);
             cursor: grab;
             transition: box-shadow 0.3s ease;
             &:hover {
                 box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
             }
             img {
-                width: 80%;
+                width: 90%; // plus large
                 height: auto;
                 object-fit: contain;
                 transition: transform 0.3s ease;
@@ -316,9 +320,7 @@ $anim-duration: 0.8s;
 }
 
 
-/*======================================
-=         TABLEAU DASHBOARD            =
-======================================*/
+/* Tableau */
 
 .dashboard-table {
     width: 100%;
@@ -361,7 +363,7 @@ $anim-duration: 0.8s;
 }
 
 
-/* Responsive tweaks */
+/* Responsive */
 
 @media (max-width: 768px) {
     .dashboard-table {
@@ -371,7 +373,5 @@ $anim-duration: 0.8s;
             padding: 0.5rem 0.75rem;
         }
     }
-    .dashboard-preview {
-        display: none;
-    }
+    .dashboard-preview {}
 }

@@ -3,65 +3,71 @@ export const formModeIndicator = document.getElementById('form-mode-indicator');
 export function initDashboard() {
     const tabs = document.querySelectorAll('.dashboard-tab');
     const panes = document.querySelectorAll('.dashboard-pane');
+    const previewPane = document.getElementById('tab-preview');
     if (!tabs.length || !panes.length) return;
 
-    // --- Initialisation : afficher le premier pane ---
-    panes.forEach((p, i) => {
-        if (window.innerWidth >= 768 && p.id === 'tab-preview') {
-            p.style.display = 'flex';
-            p.classList.add('active');
-        } else {
-            p.style.display = i === 0 ? 'flex' : 'none';
-            p.classList.toggle('active', i === 0);
-        }
-        if (p.classList.contains('active')) {
-            const children = p.querySelectorAll('.dashboard-form, .dashboard-preview');
-            children.forEach(c => c.style.animation = 'fadeSlideIn 0.4s ease forwards');
-        }
+    // --- Initialisation : tout caché ---
+    panes.forEach(p => {
+        p.style.display = 'none';
+        p.classList.remove('active');
     });
+    if (previewPane) {
+        previewPane.style.display = 'none';
+        previewPane.classList.remove('active');
+    }
+    tabs.forEach(t => t.classList.remove('active'));
 
-    tabs.forEach((t, i) => t.classList.toggle('active', i === 0));
-
+    // --- Gestion des clics onglets ---
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             const targetId = `tab-${tab.dataset.tab}`;
             const targetPane = document.getElementById(targetId);
             if (!targetPane) return;
 
-            if (window.innerWidth >= 768 && targetId === 'tab-preview') return;
-
+            // Masquer tous les panneaux + preview
             panes.forEach(p => {
-                if (window.innerWidth >= 768 && p.id === 'tab-preview') return;
                 p.style.display = 'none';
                 p.classList.remove('active');
             });
+            if (previewPane) {
+                previewPane.style.display = 'none';
+                previewPane.classList.remove('active');
+            }
 
+            // Afficher le panneau cible
             targetPane.style.display = 'flex';
             targetPane.classList.add('active');
 
-            const children = targetPane.querySelectorAll('.dashboard-form, .dashboard-preview');
-            children.forEach(c => c.style.animation = 'fadeSlideIn 0.4s ease forwards');
+            // Si c’est le formulaire, on montre la preview
+            if (targetId === 'tab-form' && previewPane) {
+                previewPane.style.display = 'flex';
+                previewPane.classList.add('active');
+            }
 
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-
+            // Mobile scroll/focus
             if (window.innerWidth < 768) {
                 targetPane.scrollIntoView({ behavior: 'smooth' });
                 const formInput = targetPane.querySelector('input, select, textarea');
                 if (formInput) formInput.focus();
             }
+
+            // Gestion des onglets actifs
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
         });
     });
 
+    // --- Resize ---
     window.addEventListener('resize', () => {
-        panes.forEach(p => {
-            if (window.innerWidth >= 768 && p.id === 'tab-preview') {
-                p.style.display = 'flex';
-                p.classList.add('active');
-            } else if (!p.classList.contains('active')) {
-                p.style.display = 'none';
-            }
-        });
+        const formPane = document.getElementById('tab-form');
+        if (!formPane) return;
+        if (formPane.classList.contains('active') && previewPane) {
+            previewPane.style.display = 'flex';
+            previewPane.classList.add('active');
+        } else if (previewPane) {
+            previewPane.style.display = 'none';
+            previewPane.classList.remove('active');
+        }
     });
 }
 
@@ -72,15 +78,40 @@ export function setFormMode(mode, item = null) {
     const hiddenId = document.getElementById('article-id');
     const previewMainImage = document.getElementById('preview-main-image');
     const removeBtn = document.getElementById('remove-image');
+    const formPane = document.getElementById('tab-form');
+    const previewPane = document.getElementById('tab-preview');
+    const paneList = document.getElementById('tab-list');
+    const tabForm = document.querySelector('.dashboard-tab[data-tab="form"]');
+    const tabList = document.querySelector('.dashboard-tab[data-tab="list"]');
 
-    if (!form || !submitBtn || !hiddenId || !formModeIndicator) return;
+    if (!form || !submitBtn || !hiddenId || !formModeIndicator || !formPane) return;
 
     if (mode === 'edit' && item) {
+        // --- Remplir formulaire ---
         hiddenId.value = item.id;
         form.action = `/dashboard/edit/${item.id}`;
         submitBtn.textContent = "Mettre à jour l’article";
         formModeIndicator.textContent = "Mode : Édition";
-    } else {
+
+        // --- Afficher form + preview ---
+        formPane.style.display = 'flex';
+        formPane.classList.add('active');
+        if (previewPane) {
+            previewPane.style.display = 'flex';
+            previewPane.classList.add('active');
+        }
+
+        // --- Cacher la liste ---
+        if (paneList) {
+            paneList.style.display = 'none';
+            paneList.classList.remove('active');
+        }
+
+        // --- Gérer onglets ---
+        if (tabForm) tabForm.classList.add('active');
+        if (tabList) tabList.classList.remove('active');
+
+    } else { // Mode ajout
         hiddenId.value = "";
         form.action = "/dashboard/add";
         submitBtn.textContent = "Ajouter";
@@ -88,6 +119,16 @@ export function setFormMode(mode, item = null) {
         if (previewMainImage) previewMainImage.src = "https://via.placeholder.com/400x250?text=Aperçu";
         if (removeBtn) removeBtn.style.display = "none";
         formModeIndicator.textContent = "Mode : Ajout";
+
+        // Afficher form + preview seulement si l’onglet form est actif
+        if (tabForm && tabForm.classList.contains('active')) {
+            formPane.style.display = 'flex';
+            formPane.classList.add('active');
+            if (previewPane) {
+                previewPane.style.display = 'flex';
+                previewPane.classList.add('active');
+            }
+        }
     }
 
     form.classList.add('highlight');
@@ -97,6 +138,7 @@ export function setFormMode(mode, item = null) {
         formModeIndicator.classList.remove('pulse');
     }, 800);
 }
+
 
 export function resetFormToAddMode() {
     setFormMode('add');
