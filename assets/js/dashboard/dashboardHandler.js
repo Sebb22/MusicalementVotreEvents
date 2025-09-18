@@ -1,5 +1,3 @@
-// assets/js/components/dashboard/dashboardHandler.js
-
 export const formModeIndicator = document.getElementById('form-mode-indicator');
 
 export function initDashboard() {
@@ -7,7 +5,7 @@ export function initDashboard() {
     const panes = document.querySelectorAll('.dashboard-pane');
     if (!tabs.length || !panes.length) return;
 
-    // Initialisation : afficher le premier pane
+    // --- Initialisation : afficher le premier pane ---
     panes.forEach((p, i) => {
         if (window.innerWidth >= 768 && p.id === 'tab-preview') {
             p.style.display = 'flex';
@@ -67,7 +65,7 @@ export function initDashboard() {
     });
 }
 
-// Formulaire
+// --- Formulaire ---
 export function setFormMode(mode, item = null) {
     const form = document.getElementById('article-form');
     const submitBtn = form && form.querySelector('.dashboard-form__submit');

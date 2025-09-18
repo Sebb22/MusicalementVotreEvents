@@ -1,5 +1,3 @@
-// assets/js/components/dashboard/dashboardComponent.js
-
 import { renderAttributes } from '../dashboard/dashboardItemsAttributesHandler.js';
 import { initPreview } from '../dashboard/dashboardPreviewHandler.js';
 import { initImagePreview } from '../dashboard/dashboardImagePreviewHandler.js';
@@ -14,8 +12,10 @@ export function initDashboardComponent() {
 
     if (!locationSelect || !attributesContainer || !previewAttributes || !previewCategory) return;
 
+    // --- Tabs et affichage ---
     initDashboard();
 
+    // --- Gestion dynamique catégorie ---
     locationSelect.addEventListener('change', e => {
         const selectedOption = locationSelect.options[locationSelect.selectedIndex];
         previewCategory.textContent = selectedOption.value ? `Catégorie : ${selectedOption.text}` : "Catégorie : -";
@@ -28,7 +28,8 @@ export function initDashboardComponent() {
         renderAttributes(locationSelect.value, attributesContainer, previewAttributes);
     }
 
-    initPreview({
+    // --- Préview texte ---
+    const previewConfig = {
         nameInput: document.getElementById('name'),
         priceInput: document.getElementById('price'),
         stockInput: document.getElementById('stock'),
@@ -37,34 +38,44 @@ export function initDashboardComponent() {
         previewPrice: document.getElementById('preview-price'),
         previewStock: document.getElementById('preview-stock'),
         previewAvailability: document.getElementById('preview-availability')
-    });
+    };
+    initPreview(previewConfig);
 
-    initImagePreview({
+    // --- Préview image ---
+    const imageConfig = {
         imageInput: document.getElementById('image'),
         previewMainImage: document.getElementById('preview-main-image'),
         resizeInput: document.getElementById('resize'),
         container: document.getElementById('preview-container'),
         removeBtn: document.getElementById('remove-image')
-    });
+    };
+    initImagePreview(imageConfig);
 
+    // --- Edition articles ---
     initEditArticle({
         tbody: document.querySelector('#tab-list tbody'),
         locationSelect,
-        nameInput: document.getElementById('name'),
-        priceInput: document.getElementById('price'),
-        stockInput: document.getElementById('stock'),
-        availabilityInput: document.getElementById('availability'),
+        nameInput: previewConfig.nameInput,
+        priceInput: previewConfig.priceInput,
+        stockInput: previewConfig.stockInput,
+        availabilityInput: previewConfig.availabilityInput,
         previewCategory,
-        previewMainImage: document.getElementById('preview-main-image'),
-        removeBtn: document.getElementById('remove-image'),
-        previewName: document.getElementById('preview-name'),
-        previewPrice: document.getElementById('preview-price'),
-        previewStock: document.getElementById('preview-stock'),
-        previewAvailability: document.getElementById('preview-availability'),
+        previewMainImage: imageConfig.previewMainImage,
+        removeBtn: imageConfig.removeBtn,
+        previewName: previewConfig.previewName,
+        previewPrice: previewConfig.previewPrice,
+        previewStock: previewConfig.previewStock,
+        previewAvailability: previewConfig.previewAvailability,
         submitBtn: document.querySelector('.dashboard-form__submit'),
         formModeIndicator
     });
 
+    // --- Reset formulaire / preview au clic sur onglets ---
     const formTab = document.querySelector('.dashboard-tab[data-tab="form"]');
-    if (formTab) formTab.addEventListener('click', resetFormToAddMode);
+    const listTab = document.querySelector('.dashboard-tab[data-tab="list"]');
+
+    const resetFormAndPreview = () => resetFormToAddMode();
+
+    if (formTab) formTab.addEventListener('click', resetFormAndPreview);
+    if (listTab) listTab.addEventListener('click', resetFormAndPreview);
 }
