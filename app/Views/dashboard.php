@@ -16,7 +16,7 @@
     <!-- Panneaux -->
     <div class="dashboard-panes">
       <!-- Formulaire + Preview côte à côte -->
-      <div id="tab-form" class="dashboard-pane active">
+      <div id="tab-form" class="dashboard-pane ">
         <!-- Formulaire -->
         <div class="dashboard-form-wrapper">
           <p id="form-mode-indicator" class="dashboard-form__mode">Mode : Ajout</p>
