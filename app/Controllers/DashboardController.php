@@ -22,10 +22,6 @@ class DashboardController extends Controller
         $this->location = new Location($pdo);
     }
 
-    /**
-     * Affiche le dashboard avec toutes les catégories et locations
-     * Si $editItemId est fourni, charge les données pour l'édition inline
-     */
     public function index(?int $editItemId = null): void
     {
         requireAdmin();
@@ -48,9 +44,6 @@ class DashboardController extends Controller
             }
         }
 
-
-
-
         $this->render('dashboard', [
             'categories' => $categories,
             'locations'  => $locations,
@@ -61,136 +54,156 @@ class DashboardController extends Controller
     }
 
     /**
-     * Ajoute une nouvelle catégorie
+     * Méthode générique pour ajouter ou mettre à jour un item
      */
-    public function addItem(): void
+    private function saveOrUpdateItem(?int $id = null)
     {
-        requireAdmin();
-    
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: /dashboard');
-            exit;
+        header('Content-Type: application/json');
+
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                throw new \Exception("Requête invalide.");
+            }
+
+            $locationId   = filter_input(INPUT_POST, 'location_id', FILTER_VALIDATE_INT);
+            $name         = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
+            $price        = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            $stock        = filter_input(INPUT_POST, 'stock', FILTER_VALIDATE_INT, ["options" => ["default" => 0, "min_range" => 0]]);
+            $availability = filter_input(INPUT_POST, 'availability', FILTER_VALIDATE_INT, ["options" => ["default" => 1]]);
+
+            if (!$locationId || !$name || $price === false) {
+                throw new \Exception("Champs manquants ou invalides.");
+            }
+
+            $itemModel = new LocationItem($this->pdo);
+            $item = $id ? $itemModel->find($id) : $itemModel;
+
+            if ($id && !$item) {
+                throw new \Exception("Élément introuvable.");
+            }
+
+            // Propriétés
+            $item->location_id  = $locationId;
+            $item->name         = $name;
+            $item->price        = $price;
+            $item->stock        = $stock;
+            $item->availability = $availability;
+
+            // Sauvegarde
+            if ($id) {
+                $item->update();
+            } else {
+                $item->save();
+            }
+
+            // Gestion image si fournie
+            if (!empty($_FILES['image']['tmp_name'])) {
+                $imagePath = $this->handleImageUpload($_FILES['image']);
+                if (!$imagePath) throw new \Exception("Erreur lors de l’upload de l’image.");
+
+                $pictureModel = new LocationPicture($this->pdo);
+                $pictureModel->addPicture($item->id, $imagePath, true);
+            }
+
+            // Attributs dynamiques
+            $this->handleAttributes($item->id);
+
+            echo json_encode([
+                'success' => true,
+                'message' => $id ? "Élément mis à jour avec succès." : "Élément ajouté avec succès."
+            ]);
+
+        } catch (\Exception $e) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
         }
-    
-        // Vérifications de base
-        if (empty($_POST['location_id']) || empty($_POST['name']) || empty($_POST['price'])) {
-            $_SESSION['error'] = "La catégorie, le nom et le prix sont obligatoires.";
-            header('Location: /dashboard');
-            exit;
+
+        exit;
+    }
+
+    public function addItem()
+    {
+        $this->saveOrUpdateItem();
+    }
+
+    public function updateItem()
+    {
+        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+        $this->saveOrUpdateItem($id);
+    }
+
+    public function deleteItem()
+    {
+        header('Content-Type: application/json');
+
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                throw new \Exception("Requête invalide.");
+            }
+
+            $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+            if (!$id) throw new \Exception("ID invalide.");
+
+            $itemModel = new LocationItem($this->pdo);
+            $item = $itemModel->find($id);
+            if (!$item) throw new \Exception("Élément introuvable.");
+
+            $item->delete();
+
+            echo json_encode([
+                'success' => true,
+                'message' => "Élément supprimé avec succès."
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
         }
-    
-        // Création de l’item
-        $item = $this->locationItem;
-        $item->location_id  = (int) $_POST['location_id'];
-        $item->name         = $_POST['name'];
-        $item->price        = (float) $_POST['price'];
-        $item->stock        = (int) ($_POST['stock'] ?? 0);
-        $item->availability = (int) ($_POST['availability'] ?? 1);
-        $item->save();
-    
-        // 🔹 Attributs dynamiques
-        if (!empty($_POST['attributes'])) {
+
+        exit;
+    }
+
+    private function handleImageUpload($file)
+    {
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        $maxSize = 2 * 1024 * 1024;
+
+        if ($file['size'] > $maxSize) return false;
+
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($file['tmp_name']);
+        if (!in_array($mimeType, $allowedTypes, true)) return false;
+
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $safeFilename = uniqid('img_', true) . '.' . $ext;
+
+        $uploadDir = __DIR__ . '/../../public/uploads/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+        $destination = $uploadDir . $safeFilename;
+        if (move_uploaded_file($file['tmp_name'], $destination)) {
+            return '/uploads/' . $safeFilename;
+        }
+
+        return false;
+    }
+
+    private function handleAttributes(int $itemId): void
+    {
+        if (!empty($_POST['attributes']) && is_array($_POST['attributes'])) {
             $attrModel = new LocationAttribute($this->pdo);
             foreach ($_POST['attributes'] as $attrName => $attrValue) {
-                if ($attrValue !== null && $attrValue !== '') {
-                    $attrModel->updateOrCreate($item->id, $attrName, $attrValue);
+                $cleanName  = preg_replace('/[^a-zA-Z0-9_\-]/', '', $attrName);
+                $cleanValue = htmlspecialchars(trim($attrValue), ENT_QUOTES, 'UTF-8');
+                if ($cleanValue !== '') {
+                    $attrModel->updateOrCreate($itemId, $cleanName, $cleanValue);
                 }
             }
         }
-    
-        // 🔹 Upload image (un seul fichier)
-        if (!empty($_FILES['image']['tmp_name'])) {
-            $uploadDir = __DIR__ . '/../../public/uploads/items/' . $item->id . '/';
-            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-    
-            $imageModel = new LocationPicture($this->pdo);
-            $filename = uniqid() . '_' . basename($_FILES['image']['name']);
-            $filePath = $uploadDir . $filename;
-            $relativePath = '/uploads/items/' . $item->id . '/' . $filename;
-    
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $filePath)) {
-                $imageModel->addPicture($item->id, $relativePath, true);
-            }
-        }
-    
-        $_SESSION['success'] = "Item ajouté avec succès.";
-        header('Location: /dashboard');
-        exit;
-    }
-    
-
-
-    /**
-     * Supprime une catégorie
-     */
-    public function deleteItem(int $id): void
-    {
-        requireAdmin();
-
-        $item = $this->locationItem;
-        $item->id = $id;
-        $item->delete();
-
-        $_SESSION['success'] = "Catégorie supprimée.";
-        header('Location: /dashboard');
-        exit;
-    }
-
-    /**
-     * Édite une catégorie (redirige vers index avec l'item à éditer)
-     */
-    public function editItem(int $id): void
-    {
-        requireAdmin();
-
-        $item = $this->locationItem->find($id);
-        if (!$item) {
-            $_SESSION['error'] = "Item introuvable.";
-            header('Location: /dashboard');
-            exit;
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // 🔹 Mise à jour des champs généraux
-            $item->name         = $_POST['name'] ?? $item->name;
-            $item->price        = $_POST['prix'] ?? $item->price;
-            $item->stock        = $_POST['stock'] ?? $item->stock;
-            $item->availability = $_POST['availability'] ?? $item->availability;
-            $item->update();
-
-            // 🔹 Mise à jour des attributs
-            if (!empty($_POST['attributes'])) {
-                $attrModel = new LocationAttribute($this->pdo);
-                foreach ($_POST['attributes'] as $attrName => $attrValue) {
-                    if ($attrValue !== null && $attrValue !== '') {
-                        $attrModel->updateOrCreate($id, $attrName, $attrValue);
-                    }
-                }
-            }
-
-            // 🔹 Upload des nouvelles images
-            if (!empty($_FILES['images']['tmp_name'])) {
-                $uploadDir = __DIR__ . '/../../public/uploads/items/' . $item->id . '/';
-                if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-
-                $imageModel = new LocationPicture($this->pdo);
-                foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
-                    $filename = uniqid() . '_' . basename($_FILES['images']['name'][$key]);
-                    $filePath = $uploadDir . $filename;
-                    $relativePath = '/uploads/items/' . $item->id . '/' . $filename;
-
-                    if (move_uploaded_file($tmpName, $filePath)) {
-                        $imageModel->addPicture($item->id, $relativePath, false);
-                    }
-                }
-            }
-
-            $_SESSION['success'] = "Item mis à jour avec succès.";
-            header('Location: /dashboard');
-            exit;
-        }
-
-        // GET => rediriger vers index() avec l’item à éditer
-        $this->index($id);
     }
 }

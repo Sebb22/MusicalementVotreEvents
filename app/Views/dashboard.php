@@ -1,6 +1,6 @@
 <section class="dashboard">
   <h1 class="dashboard__title">Gestion des articles</h1>
-
+  <div id="form-message" class="form-message" style="display:none"></div>
   <!-- Onglets -->
   <div class="dashboard-tabs">
     <button class="dashboard-tab active" data-tab="form">Formulaire</button>

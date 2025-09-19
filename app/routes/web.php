@@ -1,41 +1,52 @@
 <?php
 
+// ---------------------
 // Routes publiques
+// ---------------------
+
 $router->get('/', [$homeController, 'index']);
 $router->get('/location', [$locationController, 'index']);
-$router->get("/locations/{slug}", [$locationController, "show"]);
-//$router->get('/locations/{slug}', [$locationController, "show"]);
+$router->get('/locations/{slug}', [$locationController, 'show']);
 
+// ---------------------
+// Login / Logout
+// ---------------------
 
-
-// Login
 $router->get('/login', [$loginController, 'showLoginForm']);
 $router->post('/login', [$loginController, 'login']);
 $router->get('/logout', [$loginController, 'logout']);
 
+// ---------------------
 // Dashboard sécurisé
+// ---------------------
+
+// Dashboard principal
 $router->get('/dashboard', function () use ($dashboardController) {
     requireAdmin();
     $dashboardController->index();
 });
-// routes
-$router->post('/dashboard/add', [$dashboardController, 'addItem']);
 
-$router->get('/dashboard/delete/{id}', function ($id) use ($dashboardController) {
+// Ajouter un item
+$router->post('/dashboard/add', function () use ($dashboardController) {
     requireAdmin();
-    $dashboardController->deleteItem($id);
+    $dashboardController->addItem();
 });
-$router->get('/dashboard/edit/{id}', function ($id) use ($dashboardController) {
+
+// Mettre à jour un item
+$router->post('/dashboard/edit', function () use ($dashboardController) {
     requireAdmin();
-    $dashboardController->editItem($id);
+    $dashboardController->updateItem();
 });
-$router->post('/dashboard/edit/{id}', function ($id) use ($dashboardController) {
+
+// Supprimer un item
+$router->post('/dashboard/delete', function () use ($dashboardController) {
     requireAdmin();
-    $dashboardController->editItem($id);
+    $dashboardController->deleteItem();
 });
 
 // Upload d'une image pour une catégorie
 $router->post('/dashboard/uploadImage', function () use ($dashboardController) {
+    requireAdmin();
     $categoryId = $_GET['category'] ?? null;
     if ($categoryId) {
         $dashboardController->uploadCategoryImage((int) $categoryId);
@@ -48,6 +59,7 @@ $router->post('/dashboard/uploadImage', function () use ($dashboardController) {
 
 // Suppression d'une image
 $router->post('/dashboard/deleteImage', function () use ($dashboardController) {
+    requireAdmin();
     $imageId = $_GET['id'] ?? null;
     if ($imageId) {
         $dashboardController->deleteCategoryImage((int) $imageId);

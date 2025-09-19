@@ -83,8 +83,10 @@ function initDashboard() {
             previewWrapper.classList.remove('active');
         }
     });
-}
 
+    // Initialiser gestion du formulaire
+    initFormHandler();
+}
 
 function setFormMode(mode, item) {
     var form = document.getElementById('article-form');
@@ -102,7 +104,7 @@ function setFormMode(mode, item) {
 
     if (mode === 'edit' && item) {
         hiddenId.value = item.id;
-        form.action = '/dashboard/edit/' + item.id;
+        form.action = '/dashboard/edit'; // <-- plus d’ID dans l’URL
         submitBtn.textContent = "Mettre à jour l’article";
         formModeIndicator.textContent = "Mode : Édition";
 
@@ -146,6 +148,8 @@ function setFormMode(mode, item) {
         }
     }
 
+
+
     form.classList.add('highlight');
     formModeIndicator.classList.add('pulse');
     setTimeout(function() {
@@ -158,5 +162,76 @@ function resetFormToAddMode() {
     setFormMode('add');
 }
 
+function showFormMessage(message, type = 'success', duration = 3000) {
+    let messageBox = document.getElementById('form-message');
+
+    if (!messageBox) {
+        messageBox = document.createElement('div');
+        messageBox.id = 'form-message';
+        document.body.appendChild(messageBox);
+    }
+
+    messageBox.textContent = message;
+    messageBox.className = 'form-message ' + type + ' show';
+    messageBox.style.display = 'block';
+
+    // Supprimer la notification après duration
+    setTimeout(() => {
+        messageBox.classList.remove('show');
+        // cacher complètement après transition
+        setTimeout(() => { messageBox.style.display = 'none'; }, 500);
+    }, duration);
+}
+
+
+/**
+ * Gère la soumission du formulaire en AJAX
+ */
+/**
+ * Gère la soumission du formulaire en AJAX
+ */
+function initFormHandler() {
+    const form = document.getElementById('article-form');
+
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        if (form.dataset.editId) formData.append('id', form.dataset.editId);
+
+        try {
+            const response = await fetch(form.action, { method: 'POST', body: formData });
+            const rawText = await response.text();
+            let result;
+
+            try { result = JSON.parse(rawText); } catch (err) { throw new Error("Réponse JSON invalide : " + rawText); }
+
+            showFormMessage(result.message, result.success ? 'success' : 'error');
+
+            if (result.success) {
+                form.reset();
+                const previewMainImage = document.getElementById('preview-main-image');
+                if (previewMainImage) previewMainImage.src = 'https://via.placeholder.com/400x250?text=Aperçu';
+                setFormMode('add');
+            }
+
+        } catch (err) {
+            console.error("Erreur fetch :", err);
+            showFormMessage("Erreur réseau ou JSON invalide : " + err.message, 'error');
+        }
+    });
+}
+
+
+
+
+
+
+
+
+
+
 // Export pour module
-export { formModeIndicator, initDashboard, setFormMode, resetFormToAddMode };
+export { formModeIndicator, initDashboard, setFormMode, resetFormToAddMode, initFormHandler };

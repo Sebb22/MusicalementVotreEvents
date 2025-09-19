@@ -2,7 +2,7 @@ import { renderAttributes } from '../dashboard/dashboardItemsAttributesHandler.j
 import { initPreview } from '../dashboard/dashboardPreviewHandler.js';
 import { initImagePreview } from '../dashboard/dashboardImagePreviewHandler.js';
 import { initEditArticle } from '../dashboard/dashboardItemEditHandler.js';
-import { initDashboard, resetFormToAddMode, formModeIndicator } from '../dashboard/dashboardHandler.js';
+import { initDashboard, resetFormToAddMode, formModeIndicator, initFormHandler } from '../dashboard/dashboardHandler.js';
 
 export function initDashboardComponent() {
     const locationSelect = document.getElementById('location_id');
@@ -78,4 +78,7 @@ export function initDashboardComponent() {
 
     if (formTab) formTab.addEventListener('click', resetFormAndPreview);
     if (listTab) listTab.addEventListener('click', resetFormAndPreview);
+
+    // --- Gestion affichage messages de statut ---
+    initFormHandler();
 }
