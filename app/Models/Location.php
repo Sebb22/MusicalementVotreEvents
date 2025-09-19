@@ -66,4 +66,15 @@ class Location
 
         return $items;
     }
+
+    public function find(int $id): ?object
+    {
+        $stmt = $this->pdo->prepare("SELECT id, name, slug FROM locations WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) return null;
+
+        return (object) $row;
+    }
 }

@@ -59,60 +59,72 @@ class DashboardController extends Controller
     private function saveOrUpdateItem(?int $id = null)
     {
         header('Content-Type: application/json');
-
+    
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 throw new \Exception("Requête invalide.");
             }
-
+    
+            // Récupérer les données du formulaire
             $locationId   = filter_input(INPUT_POST, 'location_id', FILTER_VALIDATE_INT);
             $name         = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
             $price        = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
             $stock        = filter_input(INPUT_POST, 'stock', FILTER_VALIDATE_INT, ["options" => ["default" => 0, "min_range" => 0]]);
             $availability = filter_input(INPUT_POST, 'availability', FILTER_VALIDATE_INT, ["options" => ["default" => 1]]);
-
+    
             if (!$locationId || !$name || $price === false) {
                 throw new \Exception("Champs manquants ou invalides.");
             }
-
+    
+            // Création ou récupération d'un objet LocationItem
             $itemModel = new LocationItem($this->pdo);
-            $item = $id ? $itemModel->find($id) : $itemModel;
-
+            $item = $id ? $itemModel->find($id) : new LocationItem($this->pdo);
+    
             if ($id && !$item) {
                 throw new \Exception("Élément introuvable.");
             }
-
-            // Propriétés
+    
+            // Remplir les propriétés
             $item->location_id  = $locationId;
             $item->name         = $name;
             $item->price        = $price;
             $item->stock        = $stock;
             $item->availability = $availability;
-
-            // Sauvegarde
+    
+            // Sauvegarde en BDD
             if ($id) {
                 $item->update();
             } else {
                 $item->save();
             }
-
-            // Gestion image si fournie
+    
+            // Gestion de l'image si fournie
             if (!empty($_FILES['image']['tmp_name'])) {
                 $imagePath = $this->handleImageUpload($_FILES['image']);
                 if (!$imagePath) throw new \Exception("Erreur lors de l’upload de l’image.");
-
+    
                 $pictureModel = new LocationPicture($this->pdo);
                 $pictureModel->addPicture($item->id, $imagePath, true);
             }
-
-            // Attributs dynamiques
+    
+            // Gestion des attributs dynamiques
             $this->handleAttributes($item->id);
-
+    
+            // Retour JSON complet pour AJAX
             echo json_encode([
                 'success' => true,
-                'message' => $id ? "Élément mis à jour avec succès." : "Élément ajouté avec succès."
+                'message' => $id ? "Élément mis à jour avec succès." : "Élément ajouté avec succès.",
+                'data'    => [
+                    'id'           => $item->id,
+                    'name'         => $item->name,
+                    'location_id'  => $item->location_id,
+                    'location_name'=> $this->location->all()[$item->location_id - 1]['name'] ?? null,
+                    'price'        => number_format($item->price, 2, ',', ' '),
+                    'stock'        => $item->stock,
+                    'availability' => $item->availability
+                ]
             ]);
-
+    
         } catch (\Exception $e) {
             http_response_code(400);
             echo json_encode([
@@ -120,9 +132,11 @@ class DashboardController extends Controller
                 'message' => $e->getMessage()
             ]);
         }
-
+    
         exit;
     }
+    
+    
 
     public function addItem()
     {

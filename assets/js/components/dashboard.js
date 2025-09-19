@@ -2,7 +2,7 @@ import { renderAttributes } from '../dashboard/dashboardItemsAttributesHandler.j
 import { initPreview } from '../dashboard/dashboardPreviewHandler.js';
 import { initImagePreview } from '../dashboard/dashboardImagePreviewHandler.js';
 import { initEditArticle } from '../dashboard/dashboardItemEditHandler.js';
-import { initDashboard, resetFormToAddMode, formModeIndicator, initFormHandler } from '../dashboard/dashboardHandler.js';
+import { initDashboard, formModeIndicator, initFormHandler } from '../dashboard/dashboardHandler.js';
 
 export function initDashboardComponent() {
     const locationSelect = document.getElementById('location_id');
@@ -70,14 +70,6 @@ export function initDashboardComponent() {
         formModeIndicator
     });
 
-    // --- Reset formulaire / preview au clic sur onglets ---
-    const formTab = document.querySelector('.dashboard-tab[data-tab="form"]');
-    const listTab = document.querySelector('.dashboard-tab[data-tab="list"]');
-
-    const resetFormAndPreview = () => resetFormToAddMode();
-
-    if (formTab) formTab.addEventListener('click', resetFormAndPreview);
-    if (listTab) listTab.addEventListener('click', resetFormAndPreview);
 
     // --- Gestion affichage messages de statut ---
     initFormHandler();

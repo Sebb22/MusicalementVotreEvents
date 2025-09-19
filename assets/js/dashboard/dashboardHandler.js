@@ -88,6 +88,12 @@ function initDashboard() {
     initFormHandler();
 }
 
+var formModeIndicator = document.getElementById('form-mode-indicator');
+
+/**
+ * Configure le formulaire pour le mode "add" ou "edit"
+ * Ne touche pas aux valeurs des champs ni à la preview.
+ */
 function setFormMode(mode, item) {
     var form = document.getElementById('article-form');
     var submitBtn = form && form.querySelector('.dashboard-form__submit');
@@ -147,87 +153,91 @@ function setFormMode(mode, item) {
             previewWrapper.classList.add('active');
         }
     }
-
-
-
-    form.classList.add('highlight');
-    formModeIndicator.classList.add('pulse');
-    setTimeout(function() {
-        form.classList.remove('highlight');
-        formModeIndicator.classList.remove('pulse');
-    }, 800);
-}
-
-function resetFormToAddMode() {
-    setFormMode('add');
-}
-
-function showFormMessage(message, type = 'success', duration = 3000) {
-    let messageBox = document.getElementById('form-message');
-
-    if (!messageBox) {
-        messageBox = document.createElement('div');
-        messageBox.id = 'form-message';
-        document.body.appendChild(messageBox);
-    }
-
-    messageBox.textContent = message;
-    messageBox.className = 'form-message ' + type + ' show';
-    messageBox.style.display = 'block';
-
-    // Supprimer la notification après duration
-    setTimeout(() => {
-        messageBox.classList.remove('show');
-        // cacher complètement après transition
-        setTimeout(() => { messageBox.style.display = 'none'; }, 500);
-    }, duration);
 }
 
 
 /**
- * Gère la soumission du formulaire en AJAX
- */
-/**
- * Gère la soumission du formulaire en AJAX
+ * Initialise la gestion du formulaire : add / edit / delete
  */
 function initFormHandler() {
     const form = document.getElementById('article-form');
+    const messageBox = document.getElementById('form-message');
 
-    if (!form) return;
+    if (!form || !messageBox) return;
 
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const formData = new FormData(form);
-        if (form.dataset.editId) formData.append('id', form.dataset.editId);
+
+        // Ajouter l'ID si on est en mode édition
+        if (form.dataset.editId) {
+            formData.append('id', form.dataset.editId);
+        }
 
         try {
-            const response = await fetch(form.action, { method: 'POST', body: formData });
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData
+            });
+
             const rawText = await response.text();
+
+            // Essayer de parser le JSON
             let result;
+            try {
+                result = JSON.parse(rawText);
+            } catch (err) {
+                throw new Error("Réponse JSON invalide : " + rawText);
+            }
 
-            try { result = JSON.parse(rawText); } catch (err) { throw new Error("Réponse JSON invalide : " + rawText); }
+            // Afficher le message
+            messageBox.textContent = result.message;
+            messageBox.className = 'form-message ' + (result.success ? 'success' : 'error');
+            messageBox.style.display = 'block';
 
-            showFormMessage(result.message, result.success ? 'success' : 'error');
+            // Animation simple
+            messageBox.classList.add('show');
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+                // Optionnel : cacher après 3 secondes
+                setTimeout(() => { messageBox.style.display = 'none'; }, 300);
+            }, 3000);
 
             if (result.success) {
                 form.reset();
                 const previewMainImage = document.getElementById('preview-main-image');
-                if (previewMainImage) previewMainImage.src = 'https://via.placeholder.com/400x250?text=Aperçu';
+                if (previewMainImage) {
+                    previewMainImage.src = 'https://via.placeholder.com/400x250?text=Aperçu';
+                }
+                // Remettre le formulaire en mode ajout si nécessaire
                 setFormMode('add');
             }
 
         } catch (err) {
             console.error("Erreur fetch :", err);
-            showFormMessage("Erreur réseau ou JSON invalide : " + err.message, 'error');
+            messageBox.textContent = "Erreur réseau ou JSON invalide : " + err.message;
+            messageBox.className = 'form-message error';
+            messageBox.style.display = 'block';
         }
     });
 }
 
 
+/**
+ * Affichage message toast
+ */
+function showFormMessage(message, type) {
+    var msgEl = document.getElementById('form-message');
+    if (!msgEl) return;
 
+    msgEl.textContent = message;
+    msgEl.className = 'form-message show ' + type;
 
-
+    setTimeout(function() {
+        msgEl.classList.remove('show');
+    }, 3000);
+}
 
 
 

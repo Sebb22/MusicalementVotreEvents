@@ -81,12 +81,11 @@
     /* Panneaux */
     &-panes {
         margin: 0 auto;
-        max-width: 100px;
+        max-width: 1000px;
         display: flex;
         flex-wrap: wrap;
-        gap: 2rem;
+        /* gap: 2rem; */
         justify-content: center;
-        width: 100%;
         .dashboard-pane {
             display: none;
             flex-direction: column;
