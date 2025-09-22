@@ -1,9 +1,11 @@
 <section class="dashboard">
     <h1 class="dashboard__title">Gestion des articles</h1>
-    <div id="form-message" class="form-message" style="display:none"></div> <!-- Onglets -->
+    <div id="form-message" class="form-message"></div>
+    <!-- Onglets -->
     <div class="dashboard-tabs"> <button class="dashboard-tab" data-tab="form" data-action="add">Formulaire
             d'ajout</button> <button class="dashboard-tab" data-tab="list">Liste des articles</button>
-        <!-- Mobile toggle preview --> <button class="mobile-toggle-preview">Aperçu</button> </div> <!-- Panneaux -->
+        <!-- Mobile toggle preview --> <button class="mobile-toggle-preview">Aperçu</button> </div>
+    <!-- Panneaux -->
     <div class="dashboard-panes">
         <!-- Formulaire + Preview côte à côte -->
         <div id="tab-form" class="dashboard-pane ">
@@ -17,7 +19,8 @@
                             class="dashboard-form__label">Sélectionnez une catégorie</label> <select id="location_id"
                             name="location_id" class="dashboard-form__input" required>
                             <option value="">-- Choisissez --</option> <?php foreach ($locations as $location): ?>
-                            <option value="<?= $location['id'] ?>"><?= htmlspecialchars($location['name']) ?></option>
+                            <option value="<?=$location['id']?>"><?=htmlspecialchars($location['name'])?>
+                            </option>
                             <?php endforeach; ?>
                         </select> </div>
                     <div class="dashboard-form__group"> <label for="name" class="dashboard-form__label">Nom de
@@ -79,17 +82,17 @@
                     </tr>
                 </thead>
                 <tbody> <?php foreach ($categories as $item): ?> <tr
-                        data-item='<?= htmlspecialchars(json_encode($item), ENT_QUOTES) ?>'
-                        data-item-id="<?= $item->id ?>">
-                        <td data-label="Nom" class="item-name"><?= htmlspecialchars($item->name) ?></td>
+                        data-item='<?=htmlspecialchars(json_encode($item), ENT_QUOTES)?>' data-item-id="<?=$item->id?>">
+                        <td data-label="Nom" class="item-name"><?=htmlspecialchars($item->name)?></td>
                         <td data-label="Catégorie" class="category-name">
-                            <?= htmlspecialchars($item->location_name ?? '-') ?></td>
-                        <td data-label="Prix" class="item-price"><?= number_format($item->price, 2, ',', ' ') ?> €</td>
-                        <td data-label="Stock" class="item-stock"><?= $item->stock ?></td>
+                            <?=htmlspecialchars($item->location_name ?? '-')?></td>
+                        <td data-label="Prix" class="item-price"><?=number_format($item->price, 2, ',', ' ')?> €
+                        </td>
+                        <td data-label="Stock" class="item-stock"><?=$item->stock?></td>
                         <td data-label="Disponibilité" class="item-availability">
-                            <?= $item->availability ? 'Disponible' : 'Indisponible' ?></td>
+                            <?=$item->availability ? 'Disponible' : 'Indisponible'?></td>
                         <td data-label="Actions"> <button type="button" class="btn-edit edit-article">✏️</button> <a
-                                href="/dashboard/delete/<?= $item->id ?>" class="btn-delete"
+                                href="/dashboard/delete/<?=$item->id?>" class="btn-delete"
                                 onclick="return confirm('Supprimer cet article ?')">🗑️</a> </td>
                     </tr> <?php endforeach; ?> </tbody>
             </table>

@@ -3,11 +3,22 @@ import { DashboardEditor } from './dashboardEditor.js';
 export function showFormMessage(message, type = 'success') {
   const msgDiv = document.getElementById('form-message');
   if (!msgDiv) return;
+
+  // Réinitialiser classes
+  msgDiv.className = 'form-message'; 
+  void msgDiv.offsetWidth; // force reflow pour relancer la transition
+
+  // Ajouter type et show
   msgDiv.textContent = message;
-  msgDiv.className = `form-message ${type}`;
-  msgDiv.style.display = 'block';
-  setTimeout(() => (msgDiv.style.display = 'none'), 4000);
+  console.log(msgDiv);
+  msgDiv.classList.add(type, 'show');
+
+  // Retirer show après 4s pour faire disparaître
+  setTimeout(() => {
+    msgDiv.classList.remove('show');
+  }, 4000);
 }
+
 
 export function initDashboard({
   formId,

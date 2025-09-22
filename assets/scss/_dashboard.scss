@@ -473,35 +473,28 @@
 #form-message {
     position: fixed;
     top: 30vh;
-    /* 30% de la hauteur de l'écran */
     right: 20px;
-    /* 20px depuis le bord droit */
     padding: 12px 20px;
     border-radius: 8px;
     color: #fff;
     font-weight: bold;
     z-index: 9999;
     opacity: 0;
+    transform: translateX(100%);
     transition: opacity 0.5s ease, transform 0.5s ease;
     pointer-events: none;
-    /* pour ne pas bloquer les clics en dessous */
-    transform: translateX(100%);
-    /* hors écran au départ */
-}
-
-#form-message.show {
+  }
+  
+  #form-message.show {
     opacity: 1;
     transform: translateX(0);
-    /* glisse dans l'écran */
-}
-
-#form-message.success {
+  }
+  
+  #form-message.success {
     background-color: #28a745;
-}
-
-#form-message.error {
+  }
+  
+  #form-message.error {
     background-color: #dc3545;
-}
-
-
-/* rouge */
+  }
+  
