@@ -58,8 +58,15 @@ export function initDashboard({
       if (result.success) {
         showFormMessage(result.message, 'success');
         dashboardEditor.updateTableRow(result.data);
+    
+        // Si c'était un ajout ou une édition, passer automatiquement à l'onglet liste
+        const listTab = document.querySelector('.dashboard-tab[data-tab="list"]');
+        listTab && switchTab(listTab);
+    
         !form.dataset.editId && dashboardEditor.reset();
-      } else showFormMessage(result.message, 'error');
+      } else {
+        showFormMessage(result.message, 'error');
+      }
     } catch {
       showFormMessage('Erreur de communication avec le serveur', 'error');
     }
