@@ -15,7 +15,7 @@ const locationAttributes = {
     ]
 };
 
-export function renderAttributes(locId, attributesContainer, previewAttributes) {
+export function renderAttributes(locId, attributesContainer, previewAttributes, existingValues = {}) {
     // --- Nettoyage avant affichage ---
     attributesContainer.innerHTML = '';
     previewAttributes.innerHTML = '';
@@ -31,6 +31,9 @@ export function renderAttributes(locId, attributesContainer, previewAttributes) 
     }
 
     attrs.forEach(attr => {
+        // Valeur existante si dispo
+        const existingVal = existingValues[attr.name] || '';
+
         // --- Formulaire ---
         const div = document.createElement('div');
         div.className = 'dashboard-form__group';
@@ -39,45 +42,38 @@ export function renderAttributes(locId, attributesContainer, previewAttributes) 
             <input class="dashboard-form__input" type="${attr.type}" 
                    id="${attr.name}" 
                    name="attributes[${attr.name}]" 
-                   placeholder="${attr.placeholder}">
+                   placeholder="${attr.placeholder}"
+                   value="${existingVal}">
         `;
         attributesContainer.appendChild(div);
 
         // --- Preview ---
         const attrDiv = document.createElement('div');
         attrDiv.className = 'attribute';
-        attrDiv.innerHTML = `<i class="${attr.icon}"></i><span id="preview-${attr.name}">-</span>`;
+        const formattedVal = formatAttribute(attr.name, existingVal);
+        attrDiv.innerHTML = `<i class="${attr.icon}"></i><span id="preview-${attr.name}">${formattedVal}</span>`;
         previewAttributes.appendChild(attrDiv);
 
         // --- Synchronisation input ↔ preview ---
         const input = div.querySelector('input');
         const span = attrDiv.querySelector('span');
         input.addEventListener('input', () => {
-            let val = input.value || '-';
-            switch (attr.name) {
-                case 'nb_personnes':
-                    val = input.value ? `Jusqu’à ${input.value} pers.` : '-';
-                    break;
-                case 'age_requis':
-                    val = input.value ? `Âge : ${input.value}` : '-';
-                    break;
-                case 'dimensions':
-                    val = input.value ? `Dimensions : ${input.value}` : '-';
-                    break;
-                case 'duree':
-                    val = input.value ? `Durée : ${input.value}` : '-';
-                    break;
-                case 'nb_joueurs':
-                    val = input.value ? `Joueurs : ${input.value}` : '-';
-                    break;
-                case 'poids':
-                    val = input.value ? `Poids : ${input.value}` : '-';
-                    break;
-                case 'taille':
-                    val = input.value ? `Taille : ${input.value}` : '-';
-                    break;
-            }
-            span.textContent = val;
+            span.textContent = formatAttribute(attr.name, input.value);
         });
     });
+}
+
+// Petite fonction utilitaire pour éviter de répéter les "case"
+function formatAttribute(name, value) {
+    if (!value) return '-';
+    switch (name) {
+        case 'nb_personnes': return `Jusqu’à ${value} pers.`;
+        case 'age_requis': return `Âge : ${value}`;
+        case 'dimensions': return `Dimensions : ${value}`;
+        case 'duree': return `Durée : ${value}`;
+        case 'nb_joueurs': return `Joueurs : ${value}`;
+        case 'poids': return `Poids : ${value}`;
+        case 'taille': return `Taille : ${value}`;
+        default: return value;
+    }
 }

@@ -142,11 +142,15 @@
             width: 100%;
             height: 100%;
             z-index: 1000;
-            overflow-y: auto;
+            overflow-y: auto; // <--- permet le scroll vertical
+            -webkit-overflow-scrolling: touch; // pour un scroll fluide sur mobile
             transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; // changer center en flex-start pour que le scroll fonctionne correctement
+            padding: 2rem 1rem; // pour laisser un peu d’espace autour
+            box-sizing: border-box;
+        
             &::before {
                 content: "";
                 position: absolute;
@@ -155,9 +159,11 @@
                 backdrop-filter: blur(8px);
                 z-index: 0;
             }
+        
             &.active {
                 right: 0;
             }
+        
             .dashboard-preview {
                 position: relative;
                 z-index: 1;

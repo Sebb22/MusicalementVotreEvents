@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Models;
 
@@ -13,27 +13,42 @@ class LocationPicture
         $this->pdo = $pdo;
     }
 
-    
+    public function getMainPictureByItem(int $itemId): ?array
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT * 
+        FROM location_images 
+        WHERE item_id = :item_id AND is_main = 1 
+        LIMIT 1
+    ");
+        $stmt->execute(['item_id' => $itemId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ?: null;
+    }
+
+
+
     public function getPicturesByItem(int $itemId): array
     {
         $stmt = $this->pdo->prepare("SELECT * FROM location_images WHERE item_id = :item_id");
         $stmt->execute(['item_id' => $itemId]);
         return $stmt->fetchAll(PDO::FETCH_OBJ); // <-- ici
     }
-    
+
 
     // Alias pour compatibilité
     public function getByItem(int $itemId): array
     {
         return $this->getPicturesByItem($itemId);
     }
-    
+
 
     public function addPicture(int $itemId, string $path, bool $isMain = false): bool
     {
         if ($isMain) {
             $this->pdo->prepare("UPDATE location_images SET is_main = 0 WHERE item_id = :item_id")
-                      ->execute(['item_id' => $itemId]);
+                ->execute(['item_id' => $itemId]);
         }
 
         $stmt = $this->pdo->prepare("
@@ -56,7 +71,7 @@ class LocationPicture
     public function setMainPicture(int $pictureId, int $itemId): bool
     {
         $this->pdo->prepare("UPDATE location_images SET is_main = 0 WHERE item_id = :item_id")
-                  ->execute(['item_id' => $itemId]);
+            ->execute(['item_id' => $itemId]);
 
         $stmt = $this->pdo->prepare("UPDATE location_images SET is_main = 1 WHERE id = :id");
         return $stmt->execute(['id' => $pictureId]);
