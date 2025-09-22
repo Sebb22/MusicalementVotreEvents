@@ -90,21 +90,20 @@ export class DashboardEditor {
     reset() {
         this.form.dataset.editId = '';
         this.form.reset();
-        this.form.querySelector('#article-id').value = ''; // <-- vide
+        this.form.querySelector('#article-id').value = '';
         this.preview.name.textContent = 'Nom de l’article';
         this.preview.price.textContent = '0 €';
         this.preview.stock.textContent = 'Stock : 0';
         this.preview.availability.textContent = 'Disponibilité : Oui';
         this.preview.category.textContent = 'Catégorie : -';
         this.preview.image.src = 'https://via.placeholder.com/400x250?text=Aperçu';
-    
+
         this.attributesContainer.innerHTML = '';
         this.previewAttributes.innerHTML = '';
         this.imageHandler?.resetImage();
-    
+
         this.setMode('add');
     }
-    
 
     bindLivePreview() {
         const { form, preview, attributesContainer, previewAttributes } = this;
@@ -154,13 +153,15 @@ export class DashboardEditor {
         if (!table) return;
         const tbody = table.querySelector('tbody');
         const priceFormatted = parseFloat(itemData.price).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-
+    
         let existingRow = tbody.querySelector(`tr[data-item-id="${itemData.id}"]`);
-        console.log('[updateTableRow] itemData =', itemData, 'id =', itemData.id);
         const tr = document.createElement('tr');
         tr.dataset.item = JSON.stringify(itemData);
         tr.dataset.itemId = itemData.id;
+        tr.dataset.locationId = itemData.location_id; // pour le filtre
+    
         tr.innerHTML = `
+            <td><input type="checkbox" class="item-checkbox" data-id="${itemData.id}"></td>
             <td data-label="Nom">${itemData.name}</td>
             <td data-label="Catégorie">${itemData.location_name || '-'}</td>
             <td data-label="Prix">${priceFormatted}</td>
@@ -171,8 +172,9 @@ export class DashboardEditor {
                 <button type="button" class="btn-delete">🗑️</button>
             </td>
         `;
-
+    
         existingRow ? tbody.replaceChild(tr, existingRow) : tbody.appendChild(tr);
         table.style.display = 'table';
     }
+    
 }

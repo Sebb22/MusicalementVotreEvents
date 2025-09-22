@@ -38,10 +38,14 @@ $router->post('/dashboard/edit', function () use ($dashboardController) {
     $dashboardController->updateItem();
 });
 
-// Supprimer un item
 $router->post('/dashboard/delete', function () use ($dashboardController) {
     requireAdmin();
     $dashboardController->deleteItem();
+});
+
+$router->post('/dashboard/delete', function () use ($dashboardController) {
+    requireAdmin();
+    $dashboardController->deleteMultipleItem();
 });
 
 // Upload d'une image pour une catégorie

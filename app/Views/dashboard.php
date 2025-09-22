@@ -87,6 +87,7 @@
             <table id="items-table" class="dashboard-table">
                 <thead>
                     <tr>
+                        <th><input type="checkbox" id="select-all"></th>
                         <th>Nom</th>
                         <th>Catégorie</th>
                         <th>Prix</th>
@@ -99,23 +100,32 @@
                     <?php foreach ($categories as $item): ?>
                     <tr data-item='<?=htmlspecialchars(json_encode($item), ENT_QUOTES)?>' data-item-id="<?=$item->id?>"
                         data-location-id="<?=$item->location_id?>">
-                        <td data-label="Nom" class="item-name"><?=htmlspecialchars($item->name)?></td>
-                        <td data-label="Catégorie" class="category-name">
-                            <?=htmlspecialchars($item->location_name ?? '-')?></td>
-                        <td data-label="Prix" class="item-price"><?=number_format($item->price, 2, ',', ' ')?> €</td>
-                        <td data-label="Stock" class="item-stock"><?=$item->stock?></td>
-                        <td data-label="Disponibilité" class="item-availability">
-                            <?=$item->availability ? 'Disponible' : 'Indisponible'?></td>
-                        <td data-label="Actions">
+                        <td><input type="checkbox" class="item-checkbox" data-id="<?=$item->id?>"></td>
+                        <td><?=htmlspecialchars($item->name)?></td>
+                        <td><?=htmlspecialchars($item->location_name ?? '-')?></td>
+                        <td><?=number_format($item->price, 2, ',', ' ')?> €</td>
+                        <td><?=$item->stock?></td>
+                        <td><?=$item->availability ? 'Disponible' : 'Indisponible'?></td>
+                        <td>
                             <button type="button" class="btn-edit edit-article">✏️</button>
-                            <a href="/dashboard/delete/<?=$item->id?>" class="btn-delete"
-                                onclick="return confirm('Supprimer cet article ?')">🗑️</a>
+                            <a href="/dashboard/delete/<?=$item->id?>" class="btn-delete">🗑️</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
-
             </table>
         </div>
     </div>
+
+    <!-- Modal de confirmation -->
+<div id="confirm-modal" class="modal">
+  <div class="modal-content">
+    <p id="confirm-message">Supprimer cet article ?</p>
+    <div class="modal-actions">
+      <button id="confirm-yes" class="btn btn-danger">Oui</button>
+      <button id="confirm-no" class="btn btn-secondary">Non</button>
+    </div>
+  </div>
+</div>
+
 </section>
