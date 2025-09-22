@@ -90,20 +90,21 @@ export class DashboardEditor {
     reset() {
         this.form.dataset.editId = '';
         this.form.reset();
-        this.form.querySelector('#article-id').value = item.id || ''; // <- ajouté
+        this.form.querySelector('#article-id').value = ''; // <-- vide
         this.preview.name.textContent = 'Nom de l’article';
         this.preview.price.textContent = '0 €';
         this.preview.stock.textContent = 'Stock : 0';
         this.preview.availability.textContent = 'Disponibilité : Oui';
         this.preview.category.textContent = 'Catégorie : -';
         this.preview.image.src = 'https://via.placeholder.com/400x250?text=Aperçu';
-
+    
         this.attributesContainer.innerHTML = '';
         this.previewAttributes.innerHTML = '';
         this.imageHandler?.resetImage();
-
+    
         this.setMode('add');
     }
+    
 
     bindLivePreview() {
         const { form, preview, attributesContainer, previewAttributes } = this;

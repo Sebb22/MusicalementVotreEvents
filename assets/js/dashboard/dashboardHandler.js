@@ -5,7 +5,7 @@ export function showFormMessage(message, type = 'success') {
   if (!msgDiv) return;
 
   // Réinitialiser classes
-  msgDiv.className = 'form-message'; 
+  msgDiv.className = 'form-message';
   void msgDiv.offsetWidth; // force reflow pour relancer la transition
 
   // Ajouter type et show
@@ -18,7 +18,6 @@ export function showFormMessage(message, type = 'success') {
     msgDiv.classList.remove('show');
   }, 4000);
 }
-
 
 export function initDashboard({
   formId,
@@ -58,11 +57,13 @@ export function initDashboard({
       if (result.success) {
         showFormMessage(result.message, 'success');
         dashboardEditor.updateTableRow(result.data);
-    
+
         // Si c'était un ajout ou une édition, passer automatiquement à l'onglet liste
-        const listTab = document.querySelector('.dashboard-tab[data-tab="list"]');
+        const listTab = document.querySelector(
+          '.dashboard-tab[data-tab="list"]'
+        );
         listTab && switchTab(listTab);
-    
+
         !form.dataset.editId && dashboardEditor.reset();
       } else {
         showFormMessage(result.message, 'error');
@@ -86,19 +87,27 @@ export function initDashboard({
     panes.forEach(p => p.classList.remove('active'));
     document.getElementById(targetId)?.classList.add('active');
 
-    tabs.forEach(t => t.classList.remove('active'));
-    tabElement.classList.add('active');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetId = `tab-${tab.dataset.tab}`;
 
-    if (targetId === 'tab-form') {
-      if (preventNextReset) {
-        preventNextReset = false;
-        return;
-      }
-      if (tabElement.dataset.action === 'add' || !form.dataset.editId) {
-        dashboardEditor.reset();
-      }
-      
-    }
+        // Affiche le bon panneau
+        panes.forEach(p => p.classList.remove('active'));
+        document.getElementById(targetId)?.classList.add('active');
+
+        // Active le bouton
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Si on passe sur le formulaire
+        if (targetId === 'tab-form') {
+          if (tab.dataset.action === 'add') {
+            // Force le mode ajout
+            dashboardEditor.reset();
+          }
+        }
+      });
+    });
   }
 
   tabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab)));
