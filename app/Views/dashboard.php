@@ -85,7 +85,8 @@
                         data-item='<?=htmlspecialchars(json_encode($item), ENT_QUOTES)?>' data-item-id="<?=$item->id?>">
                         <td data-label="Nom" class="item-name"><?=htmlspecialchars($item->name)?></td>
                         <td data-label="Catégorie" class="category-name">
-                            <?=htmlspecialchars($item->location_name ?? '-')?></td>
+                            <?=htmlspecialchars($item->location_name ?? '-')?>
+                        </td>
                         <td data-label="Prix" class="item-price"><?=number_format($item->price, 2, ',', ' ')?> €
                         </td>
                         <td data-label="Stock" class="item-stock"><?=$item->stock?></td>
