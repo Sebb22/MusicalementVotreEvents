@@ -497,4 +497,57 @@
   #form-message.error {
     background-color: #dc3545;
   }
+
+  .dashboard-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  
+    label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #333;
+    }
+  
+    &__wrapper {
+      position: relative;
+      display: inline-block;
+    }
+  
+    &__select {
+      appearance: none; // supprime le style natif
+      padding: 0.4rem 2rem 0.4rem 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  
+      &:hover {
+        border-color: #bbb;
+      }
+  
+      &:focus {
+        outline: none;
+        border-color: #666;
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+      }
+    }
+  
+    // Petite flèche custom
+    &__wrapper::after {
+      content: "▼";
+      position: absolute;
+      right: 0.6rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.7rem;
+      color: #666;
+      pointer-events: none;
+    }
+  }
+  
+  
   

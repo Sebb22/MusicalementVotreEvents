@@ -67,9 +67,23 @@
                     </div>
                 </div>
             </div>
-        </div> <!-- Liste des articles -->
+        </div>
+
         <!-- Liste des articles -->
         <div id="tab-list" class="dashboard-pane">
+            <!--  filtre -->
+            <div class="dashboard-filter">
+                <label for="category-filter">Filtrer par catégorie :</label>
+                <div class="dashboard-filter__wrapper">
+                    <select id="category-filter" class="dashboard-filter__select">
+                        <option value="">Toutes</option>
+                        <?php foreach ($locations as $location): ?>
+                        <option value="<?=$location['id']?>"><?=htmlspecialchars($location['name'])?></option>
+                        <?php endforeach; ?>
+
+                    </select>
+                </div>
+            </div>
             <table id="items-table" class="dashboard-table">
                 <thead>
                     <tr>
@@ -81,21 +95,26 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody> <?php foreach ($categories as $item): ?> <tr
-                        data-item='<?=htmlspecialchars(json_encode($item), ENT_QUOTES)?>' data-item-id="<?=$item->id?>">
+                <tbody>
+                    <?php foreach ($categories as $item): ?>
+                    <tr data-item='<?=htmlspecialchars(json_encode($item), ENT_QUOTES)?>' data-item-id="<?=$item->id?>"
+                        data-location-id="<?=$item->location_id?>">
                         <td data-label="Nom" class="item-name"><?=htmlspecialchars($item->name)?></td>
                         <td data-label="Catégorie" class="category-name">
-                            <?=htmlspecialchars($item->location_name ?? '-')?>
-                        </td>
-                        <td data-label="Prix" class="item-price"><?=number_format($item->price, 2, ',', ' ')?> €
-                        </td>
+                            <?=htmlspecialchars($item->location_name ?? '-')?></td>
+                        <td data-label="Prix" class="item-price"><?=number_format($item->price, 2, ',', ' ')?> €</td>
                         <td data-label="Stock" class="item-stock"><?=$item->stock?></td>
                         <td data-label="Disponibilité" class="item-availability">
                             <?=$item->availability ? 'Disponible' : 'Indisponible'?></td>
-                        <td data-label="Actions"> <button type="button" class="btn-edit edit-article">✏️</button> <a
-                                href="/dashboard/delete/<?=$item->id?>" class="btn-delete"
-                                onclick="return confirm('Supprimer cet article ?')">🗑️</a> </td>
-                    </tr> <?php endforeach; ?> </tbody>
+                        <td data-label="Actions">
+                            <button type="button" class="btn-edit edit-article">✏️</button>
+                            <a href="/dashboard/delete/<?=$item->id?>" class="btn-delete"
+                                onclick="return confirm('Supprimer cet article ?')">🗑️</a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+
             </table>
         </div>
     </div>

@@ -58,7 +58,7 @@ export function initDashboard({
         showFormMessage(result.message, 'success');
         dashboardEditor.updateTableRow(result.data);
 
-        // Si c'était un ajout ou une édition, passer automatiquement à l'onglet liste
+        // Si ajout ou édition -> basculer sur l'onglet liste
         const listTab = document.querySelector(
           '.dashboard-tab[data-tab="list"]'
         );
@@ -78,36 +78,29 @@ export function initDashboard({
   // ---------------------------
   const tabs = document.querySelectorAll('.dashboard-tab');
   const panes = document.querySelectorAll('.dashboard-pane');
-
-  let preventNextReset = false;
+  const table = document.getElementById(tableId);
+  const filter = document.querySelector('.dashboard-filter');
 
   function switchTab(tabElement) {
     const targetId = `tab-${tabElement.dataset.tab}`;
 
+    // masquer/afficher les panneaux
     panes.forEach(p => p.classList.remove('active'));
     document.getElementById(targetId)?.classList.add('active');
 
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        const targetId = `tab-${tab.dataset.tab}`;
+    // activer le bouton courant
+    tabs.forEach(t => t.classList.remove('active'));
+    tabElement.classList.add('active');
 
-        // Affiche le bon panneau
-        panes.forEach(p => p.classList.remove('active'));
-        document.getElementById(targetId)?.classList.add('active');
+    // 👉 gérer le filtre
+    if (filter) {
+      filter.style.display = targetId === 'tab-list' ? 'flex' : 'none';
+    }
 
-        // Active le bouton
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-
-        // Si on passe sur le formulaire
-        if (targetId === 'tab-form') {
-          if (tab.dataset.action === 'add') {
-            // Force le mode ajout
-            dashboardEditor.reset();
-          }
-        }
-      });
-    });
+    // si on passe sur formulaire en mode ajout
+    if (targetId === 'tab-form' && tabElement.dataset.action === 'add') {
+      dashboardEditor.reset();
+    }
   }
 
   tabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab)));
@@ -115,7 +108,6 @@ export function initDashboard({
   // ---------------------------
   // Edition depuis la table (delegation)
   // ---------------------------
-  const table = document.getElementById(tableId);
   if (table) {
     table.addEventListener('click', e => {
       const editBtn = e.target.closest('.edit-article');
@@ -127,7 +119,6 @@ export function initDashboard({
 
       const formTab = document.querySelector('.dashboard-tab[data-tab="form"]');
       if (formTab) {
-        preventNextReset = true;
         switchTab(formTab);
       }
     });
@@ -153,6 +144,45 @@ export function initDashboard({
       btn.textContent = active ? 'Cacher l’aperçu ❌' : 'Voir l’aperçu ⬇️';
     });
   });
+
+  // ---------------------------
+  // Filtrage par catégorie
+  // ---------------------------
+  if (table) {
+    const filterSelect = document.getElementById('category-filter');
+    if (filterSelect) {
+      // --- Filtrage instantané
+      filterSelect.addEventListener('change', function () {
+        const selected = this.value;
+        const rows = table.querySelectorAll('tbody tr');
+        console.log('[Filter] valeur sélectionnée :', selected);
+
+        rows.forEach(row => {
+          const locId = row.dataset.locationId;
+          const show = !selected || locId === selected;
+          row.style.display = show ? '' : 'none';
+          console.log(
+            `[Filter] ligne id=${row.dataset.itemId} | location_id=${locId} | visible=${show}`
+          );
+        });
+      });
+
+      // --- Reset filtre quand on quitte l'onglet liste
+      tabs.forEach(tab =>
+        tab.addEventListener('click', () => {
+          const targetId = `tab-${tab.dataset.tab}`;
+          if (targetId !== 'tab-list') {
+            filterSelect.value = '';
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => (row.style.display = ''));
+            console.log(
+              '[Filter] Reset filtre et affichage de toutes les lignes'
+            );
+          }
+        })
+      );
+    }
+  }
 
   return dashboardEditor;
 }
