@@ -53,6 +53,8 @@ export class DashboardEditor {
 
     editItem(item) {
         this.form.dataset.editId = item.id || '';
+        console.log('[editItem] set editId =', this.form.dataset.editId);
+        this.form.querySelector('#article-id').value = item.id || ''; // <- ajouté
         this.form.querySelector('#name').value = item.name || '';
         this.form.querySelector('#price').value = item.price || '';
         this.form.querySelector('#stock').value = item.stock || '';
@@ -88,7 +90,7 @@ export class DashboardEditor {
     reset() {
         this.form.dataset.editId = '';
         this.form.reset();
-
+        this.form.querySelector('#article-id').value = item.id || ''; // <- ajouté
         this.preview.name.textContent = 'Nom de l’article';
         this.preview.price.textContent = '0 €';
         this.preview.stock.textContent = 'Stock : 0';
@@ -153,6 +155,7 @@ export class DashboardEditor {
         const priceFormatted = parseFloat(itemData.price).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
         let existingRow = tbody.querySelector(`tr[data-item-id="${itemData.id}"]`);
+        console.log('[updateTableRow] itemData =', itemData, 'id =', itemData.id);
         const tr = document.createElement('tr');
         tr.dataset.item = JSON.stringify(itemData);
         tr.dataset.itemId = itemData.id;

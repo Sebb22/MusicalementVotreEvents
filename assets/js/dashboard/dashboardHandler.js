@@ -39,6 +39,8 @@ export function initDashboard({
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const formData = new FormData(form);
+    console.log('[submit] envoi editId =', form.dataset.editId);
+
     try {
       const res = await fetch(form.action, { method: 'POST', body: formData });
       const result = await res.json();
@@ -77,6 +79,7 @@ export function initDashboard({
       if (tabElement.dataset.action === 'add' || !form.dataset.editId) {
         dashboardEditor.reset();
       }
+      
     }
   }
 
