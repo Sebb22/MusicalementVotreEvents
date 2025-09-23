@@ -77,3 +77,4 @@ function formatAttribute(name, value) {
         default: return value;
     }
 }
+    

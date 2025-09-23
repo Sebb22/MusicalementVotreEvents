@@ -55,60 +55,59 @@ class DashboardController extends Controller
 
     private function saveOrUpdateItem(?int $id = null)
     {
+        // Buffer pour éviter tout output accidentel (warning, notice, echo)
+        ob_start();
         header('Content-Type: application/json');
-
+    
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 throw new \Exception("Requête invalide.");
             }
-
+    
             // --- Récupérer données
             $locationId = filter_input(INPUT_POST, 'location_id', FILTER_VALIDATE_INT);
-            $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
-            $price = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            $name = htmlspecialchars(trim($_POST['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $price = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT);
             $stock = filter_input(INPUT_POST, 'stock', FILTER_VALIDATE_INT, ["options" => ["default" => 0, "min_range" => 0]]);
             $availability = filter_input(INPUT_POST, 'availability', FILTER_VALIDATE_INT, ["options" => ["default" => 1]]);
-
-            if (!$locationId || !$name || $price === false) {
+            
+            if (!$locationId || !$name || $price === false || $price < 0) {
                 throw new \Exception("Champs manquants ou invalides.");
             }
-
-            // --- Création ou maj item
+    
+            // --- Création ou mise à jour de l'item
             $itemModel = new LocationItem($this->pdo);
             $item = $id ? $itemModel->find($id) : new LocationItem($this->pdo);
+    
             if ($id && !$item) {
                 throw new \Exception("Élément introuvable.");
             }
-
+    
             $item->location_id = $locationId;
             $item->name = $name;
             $item->price = $price;
             $item->stock = $stock;
             $item->availability = $availability;
-
-            if ($id) {
-                $item->update();
-            } else {
-                $item->save();
-            }
-
+    
+            $id ? $item->update() : $item->save();
+    
             // --- Gestion image
             $pictureModel = new LocationPicture($this->pdo);
             if (!empty($_FILES['image']['tmp_name'])) {
                 $imagePath = $this->handleImageUpload($_FILES['image']);
-                if (!$imagePath) {
-                    throw new \Exception("Erreur lors de l’upload de l’image.");
-                }
-
                 $pictureModel->addPicture($item->id, $imagePath, true);
             }
-
+    
+            // Vérifier qu'il y a au moins une image
             $mainImage = $pictureModel->getMainPictureByItem($item->id);
-
+            if (!$mainImage) {
+                throw new \Exception("Chaque article doit avoir au moins une image.");
+            }
+    
             // --- Attributs dynamiques
             $this->handleAttributes($item->id);
-
-            // --- Réponse JSON unique
+    
+            // --- Réponse JSON (price en float)
             echo json_encode([
                 'success' => true,
                 'message' => $id ? "Élément mis à jour avec succès." : "Élément ajouté avec succès.",
@@ -117,10 +116,10 @@ class DashboardController extends Controller
                     'name' => $item->name,
                     'location_id' => $item->location_id,
                     'location_name' => $this->location->all()[$item->location_id - 1]['name'] ?? null,
-                    'price' => number_format($item->price, 2, ',', ' '),
+                    'price' => (float) $item->price, // important pour JSON valide
                     'stock' => $item->stock,
                     'availability' => $item->availability,
-                    'main_image' => $mainImage['image_path'] ?? null,
+                    'main_image' => $mainImage['image_path'],
                 ],
             ]);
         } catch (\Exception $e) {
@@ -130,9 +129,14 @@ class DashboardController extends Controller
                 'message' => $e->getMessage(),
             ]);
         }
-
+    
+        // Nettoyer le buffer et terminer
+        ob_end_flush();
         exit;
     }
+    
+
+    
 
     public function addItem()
     {
@@ -148,28 +152,28 @@ class DashboardController extends Controller
     public function deleteItem()
     {
         header('Content-Type: application/json');
-    
+
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 throw new \Exception("Requête invalide.");
             }
-    
+
             // Lire le JSON
             $data = json_decode(file_get_contents('php://input'), true);
             $id = isset($data['id']) ? (int) $data['id'] : null;
-    
+
             if (!$id) {
                 throw new \Exception("ID invalide.");
             }
-    
+
             $itemModel = new LocationItem($this->pdo);
             $item = $itemModel->find($id);
             if (!$item) {
                 throw new \Exception("Élément introuvable.");
             }
-    
+
             $item->delete();
-    
+
             echo json_encode([
                 'success' => true,
                 'message' => "Élément supprimé avec succès.",
@@ -181,86 +185,105 @@ class DashboardController extends Controller
                 'message' => $e->getMessage(),
             ]);
         }
-    
+
         exit;
     }
-    
 
     public function deleteMultipleItems()
-{
-    header('Content-Type: application/json');
+    {
+        header('Content-Type: application/json');
 
-    try {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            throw new \Exception("Requête invalide.");
-        }
-
-        // Lire les données JSON
-        $data = json_decode(file_get_contents('php://input'), true);
-        $ids = $data['ids'] ?? null;
-
-        if (!$ids || !is_array($ids)) {
-            throw new \Exception("Liste d'IDs invalide.");
-        }
-
-        $itemModel = new LocationItem($this->pdo);
-
-        foreach ($ids as $id) {
-            $id = (int) $id;
-            if ($id <= 0) continue;
-
-            $item = $itemModel->find($id);
-            if ($item) {
-                $item->delete();
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                throw new \Exception("Requête invalide.");
             }
+
+            // Lire les données JSON
+            $data = json_decode(file_get_contents('php://input'), true);
+            $ids = $data['ids'] ?? null;
+
+            if (!$ids || !is_array($ids)) {
+                throw new \Exception("Liste d'IDs invalide.");
+            }
+
+            $itemModel = new LocationItem($this->pdo);
+
+            foreach ($ids as $id) {
+                $id = (int) $id;
+                if ($id <= 0) {
+                    continue;
+                }
+
+                $item = $itemModel->find($id);
+                if ($item) {
+                    $item->delete();
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => "Éléments supprimés avec succès.",
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
         }
 
-        echo json_encode([
-            'success' => true,
-            'message' => "Éléments supprimés avec succès.",
-        ]);
-    } catch (\Exception $e) {
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'message' => $e->getMessage(),
-        ]);
+        exit;
     }
-
-    exit;
-}
-
 
     private function handleImageUpload($file)
     {
         $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-        $maxSize = 2 * 1024 * 1024;
-
-        if ($file['size'] > $maxSize) {
-            return false;
+    
+        // Taille max dynamique selon php.ini (upload_max_filesize)
+        $maxSize = (int) ini_get('upload_max_filesize') * 1024 * 1024;
+    
+        // Vérifie les erreurs natives de PHP
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            throw new \Exception("Erreur lors de l’upload (code {$file['error']}).");
         }
-
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $mimeType = $finfo->file($file['tmp_name']);
+    
+        // Vérifie le type MIME avec finfo
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+    
         if (!in_array($mimeType, $allowedTypes, true)) {
-            return false;
+            throw new \Exception("Format non supporté. Formats autorisés : JPG, PNG, WebP.");
         }
-
-        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $safeFilename = uniqid('img_', true) . '.' . $ext;
-
+    
+        // Vérifie la taille
+        if ($file['size'] > $maxSize) {
+            throw new \Exception(
+                "L’image est trop lourde (" . round($file['size'] / 1024 / 1024, 2) .
+                " Mo). Taille maximale autorisée : " . ($maxSize / 1024 / 1024) . " Mo."
+            );
+        }
+    
+        // Crée le dossier s’il n’existe pas
         $uploadDir = __DIR__ . '/../../public/uploads/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
-
-        $destination = $uploadDir . $safeFilename;
-        if (move_uploaded_file($file['tmp_name'], $destination)) {
-            return '/uploads/' . $safeFilename;
+    
+        // Génère un nom unique
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $fileName = uniqid('pizza_', true) . '.' . $ext;
+        $filePath = $uploadDir . $fileName;
+    
+        // Déplace le fichier
+        if (!move_uploaded_file($file['tmp_name'], $filePath)) {
+            throw new \Exception("Impossible de sauvegarder l’image.");
         }
-
-        return false;
+    
+        // Retourne le chemin relatif (stocké en BDD)
+        return 'uploads/' . $fileName;
     }
+    
 
     private function handleAttributes(int $itemId): void
     {

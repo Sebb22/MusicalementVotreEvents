@@ -1,45 +1,43 @@
 import { DashboardEditor } from './dashboardEditor.js';
 
+// ---------------------------
+// Messages de formulaire
+// ---------------------------
 export function showFormMessage(message, type = 'success') {
   const msgDiv = document.getElementById('form-message');
   if (!msgDiv) return;
 
-  msgDiv.className = 'form-message';
-  void msgDiv.offsetWidth; // force reflow pour relancer transition
-
+  msgDiv.className = 'form-message'; // reset classes
+  void msgDiv.offsetWidth; // relancer transition
   msgDiv.textContent = message;
   msgDiv.classList.add(type, 'show');
 
-  setTimeout(() => {
-    msgDiv.classList.remove('show');
-  }, 4000);
+  setTimeout(() => msgDiv.classList.remove('show'), 4000);
 }
-
+// ---------------------------
+// Modal confirmation
+// ---------------------------
 export function initConfirmModal() {
   const modal = document.getElementById('confirm-modal');
-  const content = modal.querySelector('.modal-content');
+  const msg = document.getElementById('confirm-message');
   const yesBtn = document.getElementById('confirm-yes');
   const noBtn = document.getElementById('confirm-no');
-  const msg = document.getElementById('confirm-message');
 
   function showConfirm(message) {
     return new Promise(resolve => {
       msg.textContent = message;
       modal.classList.add('active');
 
-      const closeModal = confirmed => {
+      const close = confirmed => {
         modal.classList.remove('active');
-
-        // attendre la fin de l’animation (300ms)
         setTimeout(() => resolve(confirmed), 300);
       };
 
-      yesBtn.onclick = () => closeModal(true);
-      noBtn.onclick = () => closeModal(false);
+      yesBtn.onclick = () => close(true);
+      noBtn.onclick = () => close(false);
 
-      // clic sur le fond pour fermer
       modal.onclick = e => {
-        if (e.target === modal) closeModal(false);
+        if (e.target === modal) close(false);
       };
     });
   }
@@ -105,29 +103,61 @@ export function initDashboard({
   // ---------------------------
   form.addEventListener('submit', async e => {
     e.preventDefault();
+
     const formData = new FormData(form);
+
+    // Supprimer l'image si aucun fichier choisi
+    const fileInput = form.querySelector('#image');
+    const file = fileInput?.files[0];
+    if (!file || file.size === 0) {
+      formData.delete('image');
+    }
+
+    const isEditMode = !!form.dataset.editId;
 
     try {
       const res = await fetch(form.action, { method: 'POST', body: formData });
-      const result = await res.json();
+      const text = await res.text();
+
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch {
+        console.error('Réponse non-JSON :', text);
+        showFormMessage(
+          'Réponse invalide du serveur (pas du JSON). Vérifie qu’il n’y a pas de var_dump ou d’erreurs PHP.',
+          'error'
+        );
+        return;
+      }
+
+      console.log('[Debug] Réponse serveur :', result);
 
       if (result.success) {
         showFormMessage(result.message, 'success');
         dashboardEditor.updateTableRow(result.data);
 
-        const listTab = document.querySelector(
-          '.dashboard-tab[data-tab="list"]'
-        );
-        listTab && switchTab(listTab);
+        // Retour à l'onglet liste
+        const listTab = document.querySelector('.dashboard-tab[data-tab="list"]');
+        if (listTab) switchTab(listTab);
 
-        if (!form.dataset.editId) dashboardEditor.reset();
+        // Reset formulaire uniquement si on était en ajout
+        if (!isEditMode) {
+          dashboardEditor.reset();
+        } else {
+          form.dataset.editId = '';
+          dashboardEditor.setMode('add');
+        }
       } else {
         showFormMessage(result.message, 'error');
       }
-    } catch {
+    } catch (err) {
+      console.error('Erreur réseau/fetch :', err);
       showFormMessage('Erreur de communication avec le serveur', 'error');
     }
   });
+  
+  
 
   // ---------------------------
   // Onglets
@@ -281,7 +311,7 @@ export function initDashboard({
         showFormMessage('Erreur de communication', 'error');
       }
     });
-    
+
   // ---------------------------
   // Select all checkbox
   // ---------------------------
