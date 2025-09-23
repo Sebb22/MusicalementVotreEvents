@@ -212,4 +212,44 @@ class LocationItem
         $pictureModel = new LocationPicture($this->db);
         return $pictureModel->getPicturesByItem($this->id) ?? [];
     }
+
+    /**
+     * Retourne le chemin de l'image principale pour un item
+     * ou une image par défaut si aucune n'existe
+     */
+    public function getMainImage(): string
+    {
+        $mainImg = null;
+
+        $pictures = $this->getPictures();
+
+        if (!empty($pictures)) {
+            // Chercher l'image principale
+            foreach ($pictures as $pic) {
+                if (!empty($pic->is_main) && $pic->is_main == 1) {
+                    $mainImg = $pic->image_path;
+                    break;
+                }
+            }
+
+            // Si aucune image principale, prendre la première
+            if (!$mainImg) {
+                $mainImg = $pictures[0]->image_path;
+            }
+
+            // S'assurer que le chemin commence par /
+            $mainImg = '/' . ltrim($mainImg, '/');
+
+            // Vérifier que le fichier existe sur le serveur
+            if (!file_exists($_SERVER['DOCUMENT_ROOT'] . $mainImg)) {
+                $mainImg = '/uploads/default.png';
+            }
+        } else {
+            // fallback si pas d'image
+            $mainImg = '/uploads/default.png';
+        }
+
+        return $mainImg;
+    }
+
 }
