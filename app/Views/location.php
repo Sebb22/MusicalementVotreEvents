@@ -10,8 +10,7 @@
     <section class="locations__grid">
 
         <!-- Structures gonflables -->
-        <a href="/location_catalog.php?category=structures-gonflables"
-            class="location-card location-card--structures-gonflables"
+        <a href="/location/structures-gonflables" class="location-card location-card--structures-gonflables"
             aria-label="Structures gonflables pour événements">
             <h2 class="location-card__title" id="structures-gonflables">Structures gonflables</h2>
             <span class="visually-hidden">
@@ -23,7 +22,7 @@
         </a>
 
         <!-- Machines à friandises -->
-        <a href="/location_catalog.php?category=machines-friandises" class="location-card location-card--barbeapapa"
+        <a href="/location/machines-friandises" class="location-card location-card--barbeapapa"
             aria-label="Machines à friandises pour événements">
             <h2 class="location-card__title" id="machine-barbe-a-papa">Machines à friandises</h2>
             <span class="visually-hidden">
@@ -36,7 +35,7 @@
         <!-- Enceinte musicale -->
         <a href="/location_catalog.php?category=enceinte" class="location-card location-card--sono"
             aria-label="Enceinte musicale pour événements">
-            <h2 class="location-card__title">Enceinte musicale</h2>
+            <h2 class="location-card__title">Enceintes musicales et éclairages</h2>
             <span class="visually-hidden">
                 Un son puissant pour vos soirées et événements.
             </span>

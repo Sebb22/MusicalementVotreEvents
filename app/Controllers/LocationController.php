@@ -3,18 +3,17 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Models\Location;
+use App\Models\LocationItem;
 use PDO;
-
-// <-- on ajoute PDO
 
 class LocationController extends Controller
 {
     private Location $locationModel;
-    private PDO $pdo; // ← ajouter cette ligne
+    private PDO $pdo;
 
     public function __construct(PDO $pdo)
     {
-        $this->pdo = $pdo; // ← stocke PDO
+        $this->pdo = $pdo;
         $this->locationModel = new Location($pdo);
     }
 
@@ -28,15 +27,8 @@ class LocationController extends Controller
             return;
         }
 
-        // Transformer les items en objets LocationItem
         foreach ($location['items'] as &$itemData) {
-            $itemObj = new \App\Models\LocationItem($this->pdo); // ← maintenant ça fonctionne
-            $itemObj->id = $itemData['id'];
-            $itemObj->name = $itemData['name'];
-            $itemObj->price = $itemData['price'];
-            $itemObj->attributes = $itemData['attributes'] ?? [];
-            $itemObj->images = $itemData['images'] ?? [];
-            $itemData = $itemObj;
+            $itemData = LocationItem::fromArray($this->pdo, $itemData);
         }
         unset($itemData);
 
@@ -49,7 +41,7 @@ class LocationController extends Controller
     }
 
     /**
-     * Affiche la page principale avec toutes les catégories
+     * Affiche toutes les catégories
      */
     public function index()
     {

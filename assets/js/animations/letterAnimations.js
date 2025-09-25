@@ -2,7 +2,7 @@ export function initLetterBounce() {
   // Sélectionner uniquement le titre ciblé
   const title = document.querySelector('#structures-gonflables');
   if (!title) return;
-
+console.log("je vois", title);
   // Nettoyer le texte et séparer les lettres
   const letters = title.textContent.trim().split('');
   title.textContent = '';

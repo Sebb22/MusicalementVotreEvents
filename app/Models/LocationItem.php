@@ -16,6 +16,9 @@ class LocationItem
     public $availability;
     public $created_at;
     public $updated_at;
+    public $attributes = [];
+    public $images = [];
+    public $thumbnail;
 
     public function __construct(PDO $pdo)
     {
@@ -70,6 +73,29 @@ class LocationItem
 
         return $items;
     }
+
+       /**
+     * Hydrate un LocationItem depuis un tableau
+     */
+    public static function fromArray(PDO $pdo, array $data): self
+    {
+        $item = new self($pdo);
+
+        $item->id = $data['id'] ?? null;
+        $item->location_id = $data['location_id'] ?? null;
+        $item->name = $data['name'] ?? '';
+        $item->price = $data['price'] ?? 0;
+        $item->stock = $data['stock'] ?? 0;
+        $item->availability = $data['availability'] ?? 1;
+        $item->attributes = $data['attributes'] ?? [];
+        $item->images = $data['images'] ?? [];
+
+        // Génération safe du thumbnail
+        $item->thumbnail = $item->getThumbnail();
+
+        return $item;
+    }
+
 
     public function find(int $id): ?self
     {
@@ -219,37 +245,90 @@ class LocationItem
      */
     public function getMainImage(): string
     {
-        $mainImg = null;
+        $pictureModel = new LocationPicture($this->db);
+        $mainPic = $pictureModel->getMainPictureByItem($this->id);
 
-        $pictures = $this->getPictures();
-
-        if (!empty($pictures)) {
-            // Chercher l'image principale
-            foreach ($pictures as $pic) {
-                if (!empty($pic->is_main) && $pic->is_main == 1) {
-                    $mainImg = $pic->image_path;
-                    break;
-                }
+        if ($mainPic && !empty($mainPic['image_path'])) {
+            $path = '/' . ltrim($mainPic['image_path'], '/');
+            if (file_exists($_SERVER['DOCUMENT_ROOT'] . $path)) {
+                return $path;
             }
-
-            // Si aucune image principale, prendre la première
-            if (!$mainImg) {
-                $mainImg = $pictures[0]->image_path;
-            }
-
-            // S'assurer que le chemin commence par /
-            $mainImg = '/' . ltrim($mainImg, '/');
-
-            // Vérifier que le fichier existe sur le serveur
-            if (!file_exists($_SERVER['DOCUMENT_ROOT'] . $mainImg)) {
-                $mainImg = '/uploads/default.png';
-            }
-        } else {
-            // fallback si pas d'image
-            $mainImg = '/uploads/default.png';
         }
 
-        return $mainImg;
+        // fallback si le fichier n'existe pas
+        $default = '/uploads/default.png';
+        return file_exists($_SERVER['DOCUMENT_ROOT'] . $default) ? $default : '/uploads/thumbs/default.png';
     }
+    
+    public function getThumbnail(int $width = 400, int $height = 300): string
+    {
+        $mainImg = $this->getMainImage();
+        $fullPath = $_SERVER['DOCUMENT_ROOT'] . $mainImg;
 
+        $pathInfo = pathinfo($mainImg);
+        $thumbDir = $_SERVER['DOCUMENT_ROOT'] . $pathInfo['dirname'] . '/thumbs/';
+        $thumbPath = $thumbDir . $pathInfo['basename'];
+
+        if (file_exists($thumbPath)) {
+            return '/' . ltrim($pathInfo['dirname'] . '/thumbs/' . $pathInfo['basename'], '/');
+        }
+
+        if (!file_exists($fullPath)) {
+            return '/uploads/thumbs/default.png';
+        }
+
+        if (!is_dir($thumbDir)) {
+            mkdir($thumbDir, 0755, true);
+        }
+
+        $imageInfo = getimagesize($fullPath);
+        if (!$imageInfo) {
+            return '/uploads/thumbs/default.png';
+        }
+
+        [$srcWidth, $srcHeight, $type] = $imageInfo;
+
+        switch ($type) {
+            case IMAGETYPE_JPEG: $srcImg = imagecreatefromjpeg($fullPath); break;
+            case IMAGETYPE_PNG:  $srcImg = imagecreatefrompng($fullPath); break;
+            case IMAGETYPE_WEBP: $srcImg = imagecreatefromwebp($fullPath); break;
+            default: return '/uploads/thumbs/default.png';
+        }
+
+        $thumbImg = imagecreatetruecolor($width, $height);
+
+        if (in_array($type, [IMAGETYPE_PNG, IMAGETYPE_WEBP])) {
+            imagealphablending($thumbImg, false);
+            imagesavealpha($thumbImg, true);
+            $transparent = imagecolorallocatealpha($thumbImg, 0, 0, 0, 127);
+            imagefilledrectangle($thumbImg, 0, 0, $width, $height, $transparent);
+        }
+
+        $srcRatio = $srcWidth / $srcHeight;
+        $thumbRatio = $width / $height;
+
+        if ($srcRatio > $thumbRatio) {
+            $newHeight = $height;
+            $newWidth = intval($height * $srcRatio);
+        } else {
+            $newWidth = $width;
+            $newHeight = intval($width / $srcRatio);
+        }
+
+        $x = intval(($width - $newWidth) / 2);
+        $y = intval(($height - $newHeight) / 2);
+
+        imagecopyresampled($thumbImg, $srcImg, $x, $y, 0, 0, $newWidth, $newHeight, $srcWidth, $srcHeight);
+
+        switch ($type) {
+            case IMAGETYPE_JPEG: imagejpeg($thumbImg, $thumbPath, 85); break;
+            case IMAGETYPE_PNG:  imagepng($thumbImg, $thumbPath, 6); break;
+            case IMAGETYPE_WEBP: imagewebp($thumbImg, $thumbPath, 80); break;
+        }
+
+        imagedestroy($srcImg);
+        imagedestroy($thumbImg);
+
+        return '/' . ltrim($pathInfo['dirname'] . '/thumbs/' . $pathInfo['basename'], '/');
+    }
 }
