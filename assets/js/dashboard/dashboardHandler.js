@@ -104,86 +104,103 @@ export function initDashboard({
   form.addEventListener('submit', async e => {
     e.preventDefault();
     console.log('[Submit] Formulaire soumis');
-
+  
     // --- Générer l'image transformée exactement comme visible dans le cadre ---
     if (dashboardEditor.imageHandler?.generateTransformedImage) {
-        console.log('[Debug] Génération de l’image transformée...');
-        await dashboardEditor.imageHandler.generateTransformedImage();
-        const hiddenValue = document.getElementById('image_transformed')?.value;
-        console.log('[Debug] Image transformée dans hiddenInput :', hiddenValue?.substring(0, 100) + '...'); // log partiel pour ne pas surcharger
+      console.log('[Debug] Génération de l’image transformée...');
+      await dashboardEditor.imageHandler.generateTransformedImage();
+      const hiddenValue = document.getElementById('image_transformed')?.value;
+      console.log('[Debug] Image transformée dans hiddenInput :', hiddenValue?.substring(0, 100) + '...');
     }
-
+  
     // --- Créer le FormData après génération de l'image ---
     const formData = new FormData(form);
-
+  
     console.log('[Debug] Contenu FormData :');
     for (let [key, value] of formData.entries()) {
-        if (key === 'image_transformed') {
-            console.log(key, value.substring(0, 100) + '...'); // log partiel
-        } else {
-            console.log(key, value);
-        }
+      if (key === 'image_transformed') {
+        console.log(key, value.substring(0, 100) + '...');
+      } else {
+        console.log(key, value);
+      }
     }
-
+  
     // Supprimer l'image originale si aucun fichier choisi
     const fileInput = form.querySelector('#image');
     const file = fileInput?.files[0];
     if (!file || file.size === 0) {
-        formData.delete('image');
-        console.log('[Debug] Pas de fichier image envoyé');
+      formData.delete('image');
+      console.log('[Debug] Pas de fichier image envoyé');
     }
-
+  
     const isEditMode = !!form.dataset.editId;
     console.log('[Debug] isEditMode :', isEditMode, 'dataset.editId :', form.dataset.editId);
-
-    try {
-        const res = await fetch(form.action, { method: 'POST', body: formData });
-        const text = await res.text();
-
-        console.log('[Debug] Réponse brute serveur :', text);
-
-        let result;
-        try {
-            result = JSON.parse(text);
-        } catch {
-            console.error('[Erreur JSON] Réponse non-JSON :', text);
-            showFormMessage(
-                'Réponse invalide du serveur (pas du JSON). Vérifie qu’il n’y a pas de var_dump ou d’erreurs PHP.',
-                'error'
-            );
-            return;
-        }
-
-        console.log('[Debug] Réponse JSON serveur :', result);
-
-        if (result.success) {
-            showFormMessage(result.message, 'success');
-            console.log('[Debug] Mise à jour du tableau avec :', result.data);
-            dashboardEditor.updateTableRow(result.data);
-
-            // Retour à l'onglet liste
-            const listTab = document.querySelector('.dashboard-tab[data-tab="list"]');
-            if (listTab) switchTab(listTab);
-
-            // Reset formulaire uniquement si ajout
-            if (!isEditMode) {
-                console.log('[Debug] Reset formulaire (ajout)');
-                dashboardEditor.reset();
-            } else {
-                form.dataset.editId = '';
-                dashboardEditor.setMode('add');
-                console.log('[Debug] Mode formulaire remis à "add" après édition');
-            }
-        } else {
-            console.warn('[Debug] Erreur serveur :', result.message);
-            showFormMessage(result.message, 'error');
-        }
-    } catch (err) {
-        console.error('[Erreur fetch] Erreur de communication avec le serveur :', err);
-        showFormMessage('Erreur de communication avec le serveur', 'error');
+  
+    // ---------------------------
+    // Confirmation utilisateur
+    // ---------------------------
+    const action = isEditMode ? 'modifier' : 'ajouter';
+    const name = formData.get('name') || 'cet article';
+    const confirmed = await showConfirm(
+      `Voulez-vous vraiment ${action} "${name}" ?`
+    );
+  
+    if (!confirmed) {
+      console.log('[Submit] Action annulée par l’utilisateur');
+      return;
     }
-});
-
+  
+    // ---------------------------
+    // Envoi au serveur
+    // ---------------------------
+    try {
+      const res = await fetch(form.action, { method: 'POST', body: formData });
+      const text = await res.text();
+  
+      console.log('[Debug] Réponse brute serveur :', text);
+  
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch {
+        console.error('[Erreur JSON] Réponse non-JSON :', text);
+        showFormMessage(
+          'Réponse invalide du serveur (pas du JSON). Vérifie qu’il n’y a pas de var_dump ou d’erreurs PHP.',
+          'error'
+        );
+        return;
+      }
+  
+      console.log('[Debug] Réponse JSON serveur :', result);
+  
+      if (result.success) {
+        showFormMessage(result.message, 'success');
+        console.log('[Debug] Mise à jour du tableau avec :', result.data);
+        dashboardEditor.updateTableRow(result.data);
+  
+        // Retour à l'onglet liste
+        const listTab = document.querySelector('.dashboard-tab[data-tab="list"]');
+        if (listTab) switchTab(listTab);
+  
+        // Reset formulaire uniquement si ajout
+        if (!isEditMode) {
+          console.log('[Debug] Reset formulaire (ajout)');
+          dashboardEditor.reset();
+        } else {
+          form.dataset.editId = '';
+          dashboardEditor.setMode('add');
+          console.log('[Debug] Mode formulaire remis à "add" après édition');
+        }
+      } else {
+        console.warn('[Debug] Erreur serveur :', result.message);
+        showFormMessage(result.message, 'error');
+      }
+    } catch (err) {
+      console.error('[Erreur fetch] Erreur de communication avec le serveur :', err);
+      showFormMessage('Erreur de communication avec le serveur', 'error');
+    }
+  });
+  
 
 
   // ---------------------------
