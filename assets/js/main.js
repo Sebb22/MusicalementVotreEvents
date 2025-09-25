@@ -10,7 +10,7 @@ import { initClientsReveal } from './animations/clients.js';
 import { initSmoothScroll } from './animations/smoothScroll.js';
 import { animationCardFlip } from './animations/flipAnimation.js';
 import { animationPrestationsFlip } from './animations/prestationsCardFlipAnimation.js';
-
+import { initLetterBites, initLetterBounce } from './animations/letterAnimations.js';
 // Composants
 import { initBurgerMenu } from './components/burgerMenu.js';
 import { initHeaderScroll } from './components/headerScroll.js';
@@ -26,41 +26,43 @@ import { initDashboard } from '../js/dashboard/dashboardHandler.js';
 // ---------------------------
 // DOM Ready
 // ---------------------------
-document.addEventListener("DOMContentLoaded", () => {
-    // ---------------------------
-    // Instanciation des animations et composants
-    // ---------------------------
-    splitAndAnimateHeadline();
-    initRevealAnimations();
-    initClientsReveal();
-    initBurgerMenu();
-    initHeaderScroll();
-    initCards();
-    initLocationModule();
-    initFormVerification();
-    initSmoothScroll();
-    animationPrestationsFlip();
-    animationCardFlip();
-    initTableFilter('.filterable-table', '.table-filters');
+document.addEventListener('DOMContentLoaded', () => {
+  // ---------------------------
+  // Instanciation des animations et composants
+  // ---------------------------
+  splitAndAnimateHeadline();
+  initRevealAnimations();
+  initClientsReveal();
+  initBurgerMenu();
+  initHeaderScroll();
+  initCards();
+  initLocationModule();
+  initFormVerification();
+  initSmoothScroll();
+  animationPrestationsFlip();
+  animationCardFlip();
+  initTableFilter('.filterable-table', '.table-filters');
+  initLetterBounce();
+  initLetterBites();
 
-    // ---------------------------
-    // FormPreview (prévisualisation d’images)
-    // ---------------------------
-    new FormPreview('#images', '#preview');
+  // ---------------------------
+  // FormPreview (prévisualisation d’images)
+  // ---------------------------
+  new FormPreview('#images', '#preview');
 
-    // ---------------------------
-    // Dashboard : initialisation unique
-    // ---------------------------
-    initDashboard({
-        formId: 'article-form',
-        tableId: 'items-table',
-        previewSelectors: {
-            name: 'preview-name',
-            price: 'preview-price',
-            stock: 'preview-stock',
-            availability: 'preview-availability',
-            image: 'preview-main-image'
-        },
-        attributesContainer: document.getElementById('attributes')
-    });
+  // ---------------------------
+  // Dashboard : initialisation unique
+  // ---------------------------
+  initDashboard({
+    formId: 'article-form',
+    tableId: 'items-table',
+    previewSelectors: {
+      name: 'preview-name',
+      price: 'preview-price',
+      stock: 'preview-stock',
+      availability: 'preview-availability',
+      image: 'preview-main-image',
+    },
+    attributesContainer: document.getElementById('attributes'),
+  });
 });

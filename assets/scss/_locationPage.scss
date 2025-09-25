@@ -1,221 +1,164 @@
-/* --- Base --- */
-
-.locations {
-    padding: 3rem 1.5rem;
-    margin: 0;
-    width: 100%; // pleine largeur
-    text-align: center;
+/* Conteneur vertical */
+.locations__grid {
+  display: block; /* empile les cartes verticalement */
+  gap: 1.5rem;
+  padding: 2rem 1rem; /* un peu de padding horizontal sur mobile */
 }
 
+/* Header */
 .locations__header {
-    margin-bottom: 2rem;
-}
+  margin-bottom: 2rem;
+  text-align: center;
 
-.locations__title {
-    font-size: clamp(2rem, 4vw, 3rem);
+  .locations__title {
+    font-size: clamp(2rem, 6vw, 3rem);
     font-weight: 800;
     margin-bottom: 0.5rem;
-}
+  }
 
-.locations__intro {
+  .locations__intro {
     color: #444;
-    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
     max-width: 800px;
     margin: 0 auto;
-}
-
-
-/* --- Grille full width --- */
-
-.locations__grid {
-    display: grid;
-    gap: 2rem;
-    margin-top: 3rem;
-    width: 100%;
-    /* Colonnes automatiques avec largeur minimale et maximale adaptée aux écrans */
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-}
-
-@media (min-width: 1024px) {
-    .locations__grid {
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    }
-}
-
-@media (min-width: 1440px) {
-    .locations__grid {
-        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    }
-}
-
-
-/* --- Carte --- */
-
-.location-card {
-    position: relative;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    width: 100%;
-    aspect-ratio: 3 / 4;
-    border-radius: 20px;
-    overflow: hidden;
-    color: #fff;
-    text-align: center;
-    background-size: cover;
-    background-position: center;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    &:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
-    }
-    &::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient( to top, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0) 100%);
-        z-index: 0;
-    }
-}
-
-
-/* --- Bandeau sombre --- */
-
-.location-card__body {
-    position: relative;
-    padding: 1rem;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.6rem;
-    background: linear-gradient(to top, #000000c0, #00000070);
-    width: 100%;
-    height: 40%;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-}
-
-
-/* --- Titres --- */
-
-.location-card__title {
-    font-size: clamp(1.3rem, 2.5vw, 2rem);
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-    &:hover {
-        transform: scale(1.08);
-        text-shadow: 0 0 12px currentColor, 0 0 22px currentColor;
-    }
-}
-
-.location-card__emoji {
-    font-size: clamp(1.5rem, 2vw, 2.2rem);
-}
-
-
-/* --- Texte --- */
-
-.location-card__text {
-    font-size: clamp(1rem, 2vw, 1.2rem);
-    color: #ddd;
     line-height: 1.5;
-    max-width: 90%;
+  }
 }
 
+/* Cartes empilées */
+.location-card {
+  display: block;
+  margin: 2rem auto;
+  width: 90%; /* mobile full width */
+  max-width: 600px; /* largeur max pour grands écrans */
+  background: #796981f0;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 1.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
 
-/* --- Responsive petits écrans --- */
-
-@media (max-width: 480px) {
-    .locations {
-        padding: 1.5rem 0.5rem;
-    }
-    .location-card {
-        aspect-ratio: 4 / 5; // plus carré
-    }
-    .location-card__body {
-        padding: 0.8rem;
-        gap: 0.4rem;
-    }
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  }
 }
 
+/* Titres des cartes */
+.location-card__title {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  text-align: center;
 
-/* --- Animations --- */
-
-@keyframes float {
-    0%,
-    100% {
-        transform: translate(0, 0) rotate(0deg);
-    }
-    25% {
-        transform: translate(-2px, -2px) rotate(-1deg);
-    }
-    50% {
-        transform: translate(2px, 2px) rotate(1deg);
-    }
-    75% {
-        transform: translate(-1px, 1px) rotate(-0.5deg);
-    }
+  span {
+    display: inline-block;
+    transform: scale(1);
+  }
 }
 
-@keyframes pulseColor {
-    0%,
-    100% {
-        filter: brightness(1);
-    }
-    50% {
-        filter: brightness(1.5) drop-shadow(0 0 8px currentColor);
-    }
+/* Texte des cartes */
+.location-card__text {
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  line-height: 1.5;
+  text-align: center;
+  margin-bottom: 0.5rem;
 }
 
-
-/* --- Couleurs dynamiques --- */
-
-.location-card:nth-child(1) .location-card__title {
-    color: #ff6f61;
-    animation: float 2.3s ease-in-out infinite, pulseColor 2s ease-in-out infinite;
+/* Texte call-to-action normalisé */
+.location-card__text_call-to-action {
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  line-height: 1.5;
+  text-align: center;
+  margin-top: 0.5rem;
 }
 
-.location-card:nth-child(2) .location-card__title {
-    color: #ffb6c1;
-    animation: float 2.7s ease-in-out infinite, pulseColor 2.2s ease-in-out infinite;
-}
-
-.location-card:nth-child(3) .location-card__title {
-    color: #00f0ff;
-    animation: float 3s ease-in-out infinite, pulseColor 2.5s ease-in-out infinite;
-}
-
-.location-card:nth-child(4) .location-card__title {
-    color: #fff;
-    animation: float 2.5s ease-in-out infinite, pulseColor 2s ease-in-out infinite;
-}
-
-
-/* --- Backgrounds --- */
-
-.location-card--barbeapapa {
-    background-image: url('/public/images/FriandisesIllu.png');
-}
-
+/* Carte barbe à papa */
 .location-card--structures-gonflables {
-    background-image: url('/public/images/structuresGonflables.jpg');
+  position: relative;
+  background-image: url('/public/images/structuresGonflables.jpg');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:#567e227a ;/* voile semi-transparent */
+    z-index: 1;
+  }
+
+  > * {
+    position: relative;
+    z-index: 2; /* le texte passe au-dessus du voile */
+  }
 }
 
-.location-card--sono {
-    background-image: url('/public/images/sono.png');
+/* Carte barbe à papa */
+.location-card--barbeapapa {
+  position: relative;
+  background-image: url('/public/images/FriandisesIllu.png');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #9062afb8; /* voile semi-transparent */
+    z-index: 1;
+  }
+
+  > * {
+    position: relative;
+    z-index: 2; /* le texte passe au-dessus du voile */
+  }
 }
 
-.location-card--remorques-frigorifiques {
-    background-image: url('/public/images/remorqueFrigorifique.png');
+/* Responsivité pour les écrans plus grands */
+@media (min-width: 768px) {
+  .locations__grid {
+    padding: 3rem;
+  }
+
+  .location-card {
+    width: 70%;
+  }
 }
 
-.location-card--jeux {
-    background-image: url('/public/images/jeux.png');
+@media (min-width: 1200px) {
+  .location-card {
+    width: 50%;
+  }
+}
+
+/* Animations des lettres */
+@keyframes bounceLetterLong {
+  0% { transform: scale(1); }
+  20% { transform: scale(1.4); }
+  40% { transform: scale(0.9); }
+  60% { transform: scale(1.15); }
+  80% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+
+/* Texte accessible pour SEO et lecteurs d’écran */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
 }
