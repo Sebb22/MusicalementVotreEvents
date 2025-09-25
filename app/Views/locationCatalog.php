@@ -29,6 +29,7 @@
                     </div>
                 </footer>
             </div>
+
         </article>
         <?php endforeach; ?>
     </div>

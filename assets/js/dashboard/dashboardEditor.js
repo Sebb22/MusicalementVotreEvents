@@ -73,7 +73,7 @@ export class DashboardEditor {
     this.form.querySelector('#stock').value = item.stock || '';
     this.form.querySelector('#availability').value = item.availability ?? '1';
     this.form.querySelector('#location_id').value = item.location_id || '';
-
+    console.log(item);
     // Preview texte
     this.preview.name.textContent = item.name || 'Nom de l’article';
     this.preview.price.textContent = item.price
@@ -86,10 +86,13 @@ export class DashboardEditor {
       'Catégorie : ' + this.getLocationName(item.location_id);
 
     // Preview image
-    this.preview.image.src =
-      item.main_image || 'https://via.placeholder.com/400x250?text=Aperçu';
-    this.imageHandler?.resetImage();
-
+    // Preview image depuis BDD
+    const mainPicture = item.pictures?.find(p => p.is_main === '1');
+    if (mainPicture) {
+      this.imageHandler?.setImage(mainPicture.image_path);
+    } else {
+      this.imageHandler?.resetImage();
+    }
     // Attributs dynamiques
     if (typeof renderAttributes === 'function') {
       renderAttributes(

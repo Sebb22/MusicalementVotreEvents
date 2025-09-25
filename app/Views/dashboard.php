@@ -57,7 +57,7 @@
                                 title="Supprimer l’image">✕</button> <span class="preview__item-price"
                                 id="preview-price">0 €</span> </div>
                         <div class="preview__controls"> <label for="resize">Zoom</label> <input type="range" id="resize"
-                                min="50" max="300" value="100"> </div>
+                                min="10" max="500" value="150   "> </div>
                         <h3 class="preview__item-title" id="preview-name">Nom de l’article</h3>
                         <div class="preview__item-meta">
                             <p id="preview-stock">Stock : 0</p>
