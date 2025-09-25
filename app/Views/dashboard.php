@@ -80,9 +80,21 @@
                         <?php foreach ($locations as $location): ?>
                         <option value="<?=$location['id']?>"><?=htmlspecialchars($location['name'])?></option>
                         <?php endforeach; ?>
-
                     </select>
+
+                    <div class="dashboard-filter__search-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="dashboard-filter__search" placeholder="Rechercher...">
+                    </div>
                 </div>
+            </div>
+
+
+
+            <div id="bulk-actions" class="bulk-actions hidden">
+                <span id="bulk-count">0 sélectionné(s)</span>
+                <button id="delete-selected" class="btn btn-danger">🗑 Supprimer</button>
+                <button id="bulk-cancel" class="btn btn-secondary">✖ Annuler</button>
             </div>
             <table id="items-table" class="dashboard-table">
                 <thead>

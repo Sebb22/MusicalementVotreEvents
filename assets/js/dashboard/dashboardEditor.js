@@ -1,60 +1,50 @@
-import { renderAttributes } from './dashboardItemAttributesHandler.js';
-import {
-  initImagePreview,
-  exportZoomedImage,
-} from './dashboardImagePreviewHandler.js';
+import { initImagePreview } from './dashboardImagePreviewHandler.js';
 
 export class DashboardEditor {
-  constructor({
-    form,
-    preview,
-    attributesContainer,
-    previewAttributes,
-    tableId,
-  }) {
+  constructor({ form, preview, attributesContainer, previewAttributes, tableId }) {
     this.form = form;
-    this.preview = preview;
+    this.tableId = tableId;
     this.attributesContainer = attributesContainer;
     this.previewAttributes = previewAttributes;
-    this.tableId = tableId;
+    this.formModeIndicator = document.getElementById('form-mode-indicator') || null;
 
-    // Sélecteurs sécurisés
-    this.formModeIndicator =
-      document.getElementById('form-mode-indicator') || null;
+    // Inputs
+    this.inputs = {
+      name: form.querySelector('#name'),
+      price: form.querySelector('#price'),
+      stock: form.querySelector('#stock'),
+      availability: form.querySelector('#availability'),
+      location: form.querySelector('#location_id'),
+      image: form.querySelector('#image'),
+      articleId: form.querySelector('#article-id'),
+    };
+
+    // Preview
+    this.preview = preview;
 
     // Catégories
-    this.locations = Array.from(
-      document.querySelectorAll('#location_id option')
-    ).reduce((acc, opt) => {
-      if (opt.value) acc[opt.value] = opt.textContent;
-      return acc;
-    }, {});
+    this.locations = Array.from(this.inputs.location?.options || [])
+      .reduce((acc, opt) => { if (opt.value) acc[opt.value] = opt.textContent; return acc; }, {});
 
     // Preview image
     this.imageHandler = initImagePreview({
-      imageInput: this.form.querySelector('#image'),
+      imageInput: this.inputs.image,
       previewMainImage: this.preview.image,
       resizeInput: document.getElementById('resize'),
       container: document.getElementById('preview-container'),
       removeBtn: document.getElementById('remove-image'),
       form: this.form,
       hiddenInput: document.getElementById('image_transformed'),
-      frameSrc: '/assets/frame.png', // chemin vers ton cadre PNG
+      frameSrc: '/assets/frame.png',
     });
 
-    // Lier formulaire → preview texte
     this.bindLivePreview();
-
-    // Mode initial
     this.setMode('add');
   }
 
   setMode(mode) {
     const submitBtn = this.form.querySelector('.dashboard-form__submit');
-    const config = {
-      add: { text: 'Ajouter', action: '/dashboard/add' },
-      edit: { text: 'Mettre à jour', action: '/dashboard/edit' },
-    };
+    const config = { add: { text: 'Ajouter', action: '/dashboard/add' }, edit: { text: 'Mettre à jour', action: '/dashboard/edit' } };
 
     if (this.formModeIndicator) {
       this.formModeIndicator.textContent = `Mode : ${mode === 'edit' ? 'Édition' : 'Ajout'}`;
@@ -65,124 +55,79 @@ export class DashboardEditor {
     this.form.action = config[mode].action;
   }
 
+  async callRenderAttributes(locId, existingValues = {}) {
+    try {
+      const { renderAttributes } = await import('./dashboardItemAttributesHandler.js');
+      renderAttributes(locId, this.attributesContainer, this.previewAttributes, existingValues);
+    } catch (err) {
+      console.error('[Error] Impossible de charger renderAttributes :', err);
+    }
+  }
+
   editItem(item) {
     this.form.dataset.editId = item.id || '';
-    this.form.querySelector('#article-id').value = item.id || '';
-    this.form.querySelector('#name').value = item.name || '';
-    this.form.querySelector('#price').value = item.price || '';
-    this.form.querySelector('#stock').value = item.stock || '';
-    this.form.querySelector('#availability').value = item.availability ?? '1';
-    this.form.querySelector('#location_id').value = item.location_id || '';
-    console.log(item);
-    // Preview texte
-    this.preview.name.textContent = item.name || 'Nom de l’article';
-    this.preview.price.textContent = item.price
-      ? parseFloat(item.price).toFixed(2) + ' €'
-      : '0 €';
-    this.preview.stock.textContent = 'Stock : ' + (item.stock ?? 0);
-    this.preview.availability.textContent =
-      Number(item.availability) === 1 ? 'Disponible' : 'Indisponible';
-    this.preview.category.textContent =
-      'Catégorie : ' + this.getLocationName(item.location_id);
+    this.inputs.articleId.value = item.id || '';
+    this.inputs.name.value = item.name || '';
+    this.inputs.price.value = item.price || '';
+    this.inputs.stock.value = item.stock || '';
+    this.inputs.availability.value = item.availability ?? '1';
+    this.inputs.location.value = item.location_id || '';
 
-    // Preview image
-    // Preview image depuis BDD
+    this.updatePreview(item);
+
     const mainPicture = item.pictures?.find(p => p.is_main === '1');
-    if (mainPicture) {
-      this.imageHandler?.setImage(mainPicture.image_path);
-    } else {
-      this.imageHandler?.resetImage();
-    }
-    // Attributs dynamiques
-    if (typeof renderAttributes === 'function') {
-      renderAttributes(
-        item.location_id,
-        this.attributesContainer,
-        this.previewAttributes,
-        item.attributes || {}
-      );
-    }
+    mainPicture ? this.imageHandler?.setImage(mainPicture.image_path) : this.imageHandler?.resetImage();
 
+    if (item.location_id) this.callRenderAttributes(item.location_id, item.attributes || {});
     this.setMode('edit');
   }
 
-  getLocationName(id) {
-    return this.locations[id] || '-';
+  updatePreview(item) {
+    this.preview.name.textContent = item.name || 'Nom de l’article';
+    this.preview.price.textContent = item.price ? parseFloat(item.price).toFixed(2) + ' €' : '0 €';
+    this.preview.stock.textContent = 'Stock : ' + (item.stock ?? 0);
+    this.preview.availability.textContent = Number(item.availability) === 1 ? 'Disponible' : 'Indisponible';
+    this.preview.category.textContent = 'Catégorie : ' + this.getLocationName(item.location_id);
   }
+
+  getLocationName(id) { return this.locations[id] || '-'; }
 
   reset() {
     this.form.dataset.editId = '';
     this.form.reset();
-    this.form.querySelector('#article-id').value = '';
-    this.preview.name.textContent = 'Nom de l’article';
-    this.preview.price.textContent = '0 €';
-    this.preview.stock.textContent = 'Stock : 0';
-    this.preview.availability.textContent = 'Disponible';
-    this.preview.category.textContent = 'Catégorie : -';
+    this.inputs.articleId.value = '';
+    this.updatePreview({});
     this.preview.image.src = 'https://via.placeholder.com/400x250?text=Aperçu';
-
-    // Clear dynamic attributes
     this.attributesContainer.innerHTML = '';
     this.previewAttributes.innerHTML = '';
     this.imageHandler?.resetImage();
-
     this.setMode('add');
   }
 
   bindLivePreview() {
-    const { form, preview, attributesContainer, previewAttributes } = this;
+    const { form, preview, inputs } = this;
 
-    // Nom
-    form.querySelector('#name')?.addEventListener('input', e => {
-      preview.name.textContent = e.target.value || 'Nom de l’article';
+    inputs.name?.addEventListener('input', e => preview.name.textContent = e.target.value || 'Nom de l’article');
+    inputs.price?.addEventListener('input', e => preview.price.textContent = (parseFloat(e.target.value) || 0).toFixed(2) + ' €');
+    inputs.stock?.addEventListener('input', e => preview.stock.textContent = 'Stock : ' + (parseInt(e.target.value) || 0));
+    inputs.availability?.addEventListener('change', e => preview.availability.textContent = e.target.value === '1' ? 'Disponible' : 'Indisponible');
+    inputs.location?.addEventListener('change', async e => {
+      preview.category.textContent = 'Catégorie : ' + this.getLocationName(e.target.value);
+      await this.callRenderAttributes(e.target.value);
     });
 
-    // Prix
-    form.querySelector('#price')?.addEventListener('input', e => {
-      const value = parseFloat(e.target.value) || 0;
-      preview.price.textContent = value.toFixed(2) + ' €';
-    });
-
-    // Stock
-    form.querySelector('#stock')?.addEventListener('input', e => {
-      const value = parseInt(e.target.value) || 0;
-      preview.stock.textContent = 'Stock : ' + value;
-    });
-
-    // Disponibilité
-    form.querySelector('#availability')?.addEventListener('change', e => {
-      preview.availability.textContent =
-        e.target.value === '1' ? 'Disponible' : 'Indisponible';
-    });
-
-    // Catégorie
-    form.querySelector('#location_id')?.addEventListener('change', e => {
-      const val = e.target.value;
-      preview.category.textContent = 'Catégorie : ' + this.getLocationName(val);
-      if (typeof renderAttributes === 'function') {
-        renderAttributes(val, attributesContainer, previewAttributes);
-      }
-    });
-
-    // Image
-    form.querySelector('#image')?.addEventListener('change', e => {
+    inputs.image?.addEventListener('change', e => {
       const file = e.target.files[0];
-      if (file) {
-        const maxSize = 8 * 1024 * 1024; // 8 Mo
-        if (file.size > maxSize) {
-          alert(
-            `L'image est trop lourde (${(file.size / 1024 / 1024).toFixed(2)} Mo). Taille max : 8 Mo.`
-          );
-          e.target.value = '';
-          preview.image.src = 'https://via.placeholder.com/400x250?text=Aperçu';
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = ev => (preview.image.src = ev.target.result);
-        reader.readAsDataURL(file);
-      } else {
+      if (!file) return (preview.image.src = 'https://via.placeholder.com/400x250?text=Aperçu');
+      if (file.size > 8 * 1024 * 1024) {
+        alert(`L'image est trop lourde (${(file.size/1024/1024).toFixed(2)} Mo). Taille max : 8 Mo.`);
+        e.target.value = '';
         preview.image.src = 'https://via.placeholder.com/400x250?text=Aperçu';
+        return;
       }
+      const reader = new FileReader();
+      reader.onload = ev => preview.image.src = ev.target.result;
+      reader.readAsDataURL(file);
     });
   }
 
@@ -192,16 +137,8 @@ export class DashboardEditor {
     const tbody = table.querySelector('tbody');
     if (!tbody) return;
 
-    const priceFormatted =
-      parseFloat(itemData.price).toLocaleString('fr-FR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }) + ' €';
-
-    // Chercher la ligne existante
+    const priceFormatted = parseFloat(itemData.price).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
     let row = tbody.querySelector(`tr[data-item-id="${itemData.id}"]`);
-
-    // Créer la ligne (nouvelle ou mise à jour)
     const newRow = document.createElement('tr');
     newRow.dataset.item = JSON.stringify(itemData);
     newRow.dataset.itemId = String(itemData.id);
@@ -220,17 +157,11 @@ export class DashboardEditor {
       </td>
     `;
 
-    if (row) {
-      row.replaceWith(newRow);
-    } else {
-      tbody.appendChild(newRow);
-    }
+    row ? row.replaceWith(newRow) : tbody.appendChild(newRow);
 
-    // Focus visuel
     newRow.classList.add('highlight');
     newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(() => newRow.classList.remove('highlight'), 2000);
-
     table.style.display = 'table';
   }
 }

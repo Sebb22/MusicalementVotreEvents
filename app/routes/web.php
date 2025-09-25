@@ -43,9 +43,9 @@ $router->post('/dashboard/delete', function () use ($dashboardController) {
     $dashboardController->deleteItem();
 });
 
-$router->post('/dashboard/delete', function () use ($dashboardController) {
+$router->post('/dashboard/delete-multiple', function () use ($dashboardController) {
     requireAdmin();
-    $dashboardController->deleteMultipleItem();
+    $dashboardController->deleteMultipleItems();
 });
 
 // Upload d'une image pour une catégorie

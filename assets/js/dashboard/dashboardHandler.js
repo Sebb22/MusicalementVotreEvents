@@ -1,88 +1,13 @@
 import { DashboardEditor } from './dashboardEditor.js';
+import { showFormMessage, initConfirmModal } from './dashboardUtils.js';
 
-// ---------------------------
-// Messages de formulaire
-// ---------------------------
-export function showFormMessage(message, type = 'success') {
-  const msgDiv = document.getElementById('form-message');
-  if (!msgDiv) return;
-
-  msgDiv.className = 'form-message'; // reset classes
-  void msgDiv.offsetWidth; // relancer transition
-  msgDiv.textContent = message;
-  msgDiv.classList.add(type, 'show');
-
-  setTimeout(() => msgDiv.classList.remove('show'), 4000);
-}
-// ---------------------------
-// Modal confirmation
-// ---------------------------
-export function initConfirmModal() {
-  const modal = document.getElementById('confirm-modal');
-  const msg = document.getElementById('confirm-message');
-  const yesBtn = document.getElementById('confirm-yes');
-  const noBtn = document.getElementById('confirm-no');
-
-  function showConfirm(message) {
-    return new Promise(resolve => {
-      msg.textContent = message;
-      modal.classList.add('active');
-
-      const close = confirmed => {
-        modal.classList.remove('active');
-        setTimeout(() => resolve(confirmed), 300);
-      };
-
-      yesBtn.onclick = () => close(true);
-      noBtn.onclick = () => close(false);
-
-      modal.onclick = e => {
-        if (e.target === modal) close(false);
-      };
-    });
-  }
-
-  return { showConfirm };
-}
-
-export function showConfirm(message) {
-  return new Promise(resolve => {
-    const modal = document.getElementById('confirm-modal');
-    const msg = document.getElementById('confirm-message');
-    const yesBtn = document.getElementById('confirm-yes');
-    const noBtn = document.getElementById('confirm-no');
-
-    msg.textContent = message;
-    modal.classList.add('active');
-
-    yesBtn.onclick = () => {
-      modal.classList.remove('active');
-      resolve(true);
-    };
-    noBtn.onclick = () => {
-      modal.classList.remove('active');
-      resolve(false);
-    };
-  });
-}
-
-export function initDashboard({
-  formId,
-  tableId,
-  previewSelectors,
-  attributesContainer,
-}) {
+export function initDashboard({ formId, tableId, previewSelectors, attributesContainer }) {
   const form = document.getElementById(formId);
   const table = document.getElementById(tableId);
   const filter = document.querySelector('.dashboard-filter');
-
   if (!form || !table) return null;
 
-  let preventNextReset = false;
-
-  // ---------------------------
-  // Init DashboardEditor
-  // ---------------------------
+  const showConfirm = initConfirmModal();
   const dashboardEditor = new DashboardEditor({
     form,
     preview: {
@@ -98,110 +23,55 @@ export function initDashboard({
     tableId,
   });
 
+  let preventNextReset = false;
+
   // ---------------------------
   // Submit AJAX
   // ---------------------------
   form.addEventListener('submit', async e => {
     e.preventDefault();
-    console.log('[Submit] Formulaire soumis');
-  
-    // --- Générer l'image transformée exactement comme visible dans le cadre ---
+
     if (dashboardEditor.imageHandler?.generateTransformedImage) {
-      console.log('[Debug] Génération de l’image transformée...');
       await dashboardEditor.imageHandler.generateTransformedImage();
-      const hiddenValue = document.getElementById('image_transformed')?.value;
-      console.log('[Debug] Image transformée dans hiddenInput :', hiddenValue?.substring(0, 100) + '...');
     }
-  
-    // --- Créer le FormData après génération de l'image ---
+
     const formData = new FormData(form);
-  
-    console.log('[Debug] Contenu FormData :');
-    for (let [key, value] of formData.entries()) {
-      if (key === 'image_transformed') {
-        console.log(key, value.substring(0, 100) + '...');
-      } else {
-        console.log(key, value);
-      }
-    }
-  
-    // Supprimer l'image originale si aucun fichier choisi
     const fileInput = form.querySelector('#image');
     const file = fileInput?.files[0];
-    if (!file || file.size === 0) {
-      formData.delete('image');
-      console.log('[Debug] Pas de fichier image envoyé');
-    }
-  
+    if (!file || file.size === 0) formData.delete('image');
+
     const isEditMode = !!form.dataset.editId;
-    console.log('[Debug] isEditMode :', isEditMode, 'dataset.editId :', form.dataset.editId);
-  
-    // ---------------------------
-    // Confirmation utilisateur
-    // ---------------------------
     const action = isEditMode ? 'modifier' : 'ajouter';
     const name = formData.get('name') || 'cet article';
-    const confirmed = await showConfirm(
-      `Voulez-vous vraiment ${action} "${name}" ?`
-    );
-  
-    if (!confirmed) {
-      console.log('[Submit] Action annulée par l’utilisateur');
-      return;
-    }
-  
-    // ---------------------------
-    // Envoi au serveur
-    // ---------------------------
+
+    if (!(await showConfirm(`Voulez-vous vraiment ${action} "${name}" ?`))) return;
+
     try {
       const res = await fetch(form.action, { method: 'POST', body: formData });
       const text = await res.text();
-  
-      console.log('[Debug] Réponse brute serveur :', text);
-  
       let result;
-      try {
-        result = JSON.parse(text);
-      } catch {
-        console.error('[Erreur JSON] Réponse non-JSON :', text);
-        showFormMessage(
-          'Réponse invalide du serveur (pas du JSON). Vérifie qu’il n’y a pas de var_dump ou d’erreurs PHP.',
-          'error'
-        );
-        return;
-      }
-  
-      console.log('[Debug] Réponse JSON serveur :', result);
-  
+
+      try { result = JSON.parse(text); } 
+      catch { return showFormMessage('Réponse invalide du serveur.', 'error'); }
+
       if (result.success) {
         showFormMessage(result.message, 'success');
-        console.log('[Debug] Mise à jour du tableau avec :', result.data);
         dashboardEditor.updateTableRow(result.data);
-  
-        // Retour à l'onglet liste
+
+        // Switch to list tab
         const listTab = document.querySelector('.dashboard-tab[data-tab="list"]');
         if (listTab) switchTab(listTab);
-  
-        // Reset formulaire uniquement si ajout
-        if (!isEditMode) {
-          console.log('[Debug] Reset formulaire (ajout)');
-          dashboardEditor.reset();
-        } else {
+
+        if (!isEditMode) dashboardEditor.reset();
+        else {
           form.dataset.editId = '';
           dashboardEditor.setMode('add');
-          console.log('[Debug] Mode formulaire remis à "add" après édition');
         }
-      } else {
-        console.warn('[Debug] Erreur serveur :', result.message);
-        showFormMessage(result.message, 'error');
-      }
-    } catch (err) {
-      console.error('[Erreur fetch] Erreur de communication avec le serveur :', err);
-      showFormMessage('Erreur de communication avec le serveur', 'error');
+      } else showFormMessage(result.message, 'error');
+    } catch {
+      showFormMessage('Erreur de communication', 'error');
     }
   });
-  
-
 
   // ---------------------------
   // Onglets
@@ -215,15 +85,8 @@ export function initDashboard({
     document.getElementById(targetId)?.classList.add('active');
     tabs.forEach(t => t.classList.remove('active'));
     tabElement.classList.add('active');
-
-    if (filter)
-      filter.style.display = targetId === 'tab-list' ? 'flex' : 'none';
-
-    if (
-      targetId === 'tab-form' &&
-      tabElement.dataset.action === 'add' &&
-      !preventNextReset
-    ) {
+    if (filter) filter.style.display = targetId === 'tab-list' ? 'flex' : 'none';
+    if (targetId === 'tab-form' && tabElement.dataset.action === 'add' && !preventNextReset) {
       dashboardEditor.reset();
     }
     preventNextReset = false;
@@ -232,37 +95,25 @@ export function initDashboard({
   tabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab)));
 
   // ---------------------------
-  // Table delegation (edit + delete)
+  // Table delegation (edit/delete)
   // ---------------------------
   table.addEventListener('click', async e => {
     const tr = e.target.closest('tr');
     if (!tr) return;
 
-    // ---------------------------
     // Edit
-    // ---------------------------
-    const editBtn = e.target.closest('.edit-article');
-    if (editBtn) {
+    if (e.target.closest('.edit-article')) {
       dashboardEditor.editItem(JSON.parse(tr.dataset.item));
       const formTab = document.querySelector('.dashboard-tab[data-tab="form"]');
-      if (formTab) {
-        preventNextReset = true;
-        switchTab(formTab);
-      }
+      if (formTab) { preventNextReset = true; switchTab(formTab); }
       return;
     }
 
-    // ---------------------------
     // Delete single
-    // ---------------------------
-    const deleteBtn = e.target.closest('.btn-delete');
-    if (deleteBtn) {
+    if (e.target.closest('.btn-delete')) {
       e.preventDefault();
       const itemData = JSON.parse(tr.dataset.item);
-      const confirmed = await showConfirm(
-        `Supprimer l'article "${itemData.name}" ?\nCatégorie : ${itemData.location_name || '-'}\nStock : ${itemData.stock}`
-      );
-      if (!confirmed) return;
+      if (!(await showConfirm(`Supprimer l'article "${itemData.name}" ?`))) return;
 
       try {
         const res = await fetch('/dashboard/delete', {
@@ -274,9 +125,8 @@ export function initDashboard({
         if (result.success) {
           tr.remove();
           showFormMessage(result.message, 'success');
-        } else {
-          showFormMessage(result.message, 'error');
-        }
+          updateBulkActions();
+        } else showFormMessage(result.message, 'error');
       } catch {
         showFormMessage('Erreur de communication', 'error');
       }
@@ -284,133 +134,131 @@ export function initDashboard({
   });
 
   // ---------------------------
-  // Suppression multiple avec noms des articles
+  // Bulk actions
   // ---------------------------
-  document
-    .getElementById('delete-selected')
-    ?.addEventListener('click', async () => {
-      // Récupérer uniquement les checkboxes cochées
-      const selectedCheckboxes = [
-        ...document.querySelectorAll('.item-checkbox:checked'),
-      ];
-      console.log('[Debug] Checkboxes sélectionnées :', selectedCheckboxes);
+  const bulkBar = document.getElementById('bulk-actions');
+  const bulkCount = document.getElementById('bulk-count');
+  const bulkCancel = document.getElementById('bulk-cancel');
+  const deleteSelected = document.getElementById('delete-selected');
+  const selectAll = document.getElementById('select-all');
 
-      if (!selectedCheckboxes.length) {
-        showFormMessage(
-          'Veuillez sélectionner au moins un article à supprimer.',
-          'error'
-        );
-        return;
-      }
+  function getVisibleCheckboxes() {
+    return [...table.querySelectorAll('tbody tr')]
+      .filter(row => row.style.display !== 'none')
+      .map(row => row.querySelector('.item-checkbox'))
+      .filter(Boolean);
+  }
 
-      // Extraire ID + nom de chaque ligne
-      const selectedArticles = selectedCheckboxes
-        .map(cb => {
-          const tr = cb.closest('tr');
-          if (!tr) return null;
+  function updateBulkActions() {
+    const checkedBoxes = getVisibleCheckboxes().filter(cb => cb.checked);
+    const count = checkedBoxes.length;
 
-          const nameCell = tr.querySelector('td[data-label="Nom"]');
-          const name = nameCell ? nameCell.textContent.trim() : '';
-          const id = cb.dataset.id;
-          return { id, name };
-        })
-        .filter(Boolean);
+    if (count > 0) {
+      bulkBar?.classList.remove('hidden');
+      const names = checkedBoxes.map(cb => JSON.parse(cb.closest('tr').dataset.item).name);
+      bulkCount.textContent = `${count} article${count > 1 ? 's' : ''} sélectionné${count > 1 ? 's' : ''} : ${names.join(', ')}`;
+    } else bulkBar?.classList.add('hidden');
 
-      console.log('[Debug] Articles sélectionnés :', selectedArticles);
+    updateEditAvailability();
+  }
 
-      // Construire le message de confirmation
-      const message =
-        selectedArticles.length === 1
-          ? `Supprimer l’article "${selectedArticles[0].name}" ?`
-          : `Supprimer les ${selectedArticles.length} articles suivants ?\n- ${selectedArticles.map(a => a.name).join('\n- ')}`;
+  function clearSelections() {
+    table.querySelectorAll('.item-checkbox').forEach(cb => (cb.checked = false));
+    if (selectAll) selectAll.checked = false;
+    updateBulkActions();
+  }
 
-      const confirmed = await showConfirm(message);
-      if (!confirmed) return;
+  bulkCancel?.addEventListener('click', clearSelections);
+  getVisibleCheckboxes().forEach(cb => cb.addEventListener('change', updateBulkActions));
+  selectAll?.addEventListener('change', e => {
+    getVisibleCheckboxes().forEach(cb => cb.checked = e.target.checked);
+    updateBulkActions();
+  });
 
-      // Envoyer au serveur
-      const selectedIds = selectedArticles.map(a => a.id);
-      console.log('[Debug] IDs à supprimer :', selectedIds);
-
-      try {
-        const res = await fetch('/dashboard/delete-multiple', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ids: selectedIds }),
-        });
-        const result = await res.json();
-
-        console.log('[Debug] Résultat du serveur :', result);
-
-        if (result.success) {
-          // Supprimer les lignes du DOM
-          selectedIds.forEach(id => {
-            document.querySelector(`tr[data-item-id="${id}"]`)?.remove();
-          });
-          showFormMessage(result.message, 'success');
-        } else {
-          showFormMessage(result.message, 'error');
-        }
-      } catch (err) {
-        console.error('[Error] Erreur de communication :', err);
-        showFormMessage('Erreur de communication', 'error');
-      }
+  function updateEditAvailability() {
+    const checked = document.querySelectorAll('.item-checkbox:checked');
+    const editBtns = document.querySelectorAll('.edit-article');
+    editBtns.forEach(btn => {
+      btn.disabled = checked.length >= 2;
+      btn.classList.toggle('disabled', checked.length >= 2);
     });
+  }
+
+  updateEditAvailability();
+  updateBulkActions();
 
   // ---------------------------
-  // Select all checkbox
+  // Delete multiple
   // ---------------------------
-  document.getElementById('select-all')?.addEventListener('change', e => {
-    const checked = e.target.checked;
-    document
-      .querySelectorAll('.item-checkbox')
-      .forEach(cb => (cb.checked = checked));
+  deleteSelected?.addEventListener('click', async () => {
+    const selectedCheckboxes = [...document.querySelectorAll('.item-checkbox:checked')];
+    if (!selectedCheckboxes.length) return showFormMessage('Veuillez sélectionner au moins un article à supprimer.', 'error');
+
+    const selectedArticles = selectedCheckboxes.map(cb => {
+      const tr = cb.closest('tr');
+      if (!tr) return null;
+      try { return { id: cb.dataset.id, name: JSON.parse(tr.dataset.item).name }; } 
+      catch { return null; }
+    }).filter(Boolean);
+
+    const message = selectedArticles.length === 1 
+      ? `Supprimer l’article "${selectedArticles[0].name}" ?`
+      : `Supprimer les ${selectedArticles.length} articles suivants ?\n- ${selectedArticles.map(a => a.name).join('\n- ')}`;
+
+    if (!(await showConfirm(message))) return;
+
+    try {
+      const res = await fetch('/dashboard/delete-multiple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedArticles.map(a => a.id) }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        selectedArticles.forEach(a => document.querySelector(`tr[data-item-id="${a.id}"]`)?.remove());
+        showFormMessage(result.message, 'success');
+        updateBulkActions();
+      } else showFormMessage(result.message, 'error');
+    } catch { showFormMessage('Erreur de communication', 'error'); }
   });
 
   // ---------------------------
-  // Filtrage par catégorie
+  // Filtrage recherche + catégorie
   // ---------------------------
-  if (table) {
-    const filterSelect = document.getElementById('category-filter');
-    if (filterSelect) {
-      // --- Filtrage instantané
-      filterSelect.addEventListener('change', function () {
-        const selected = this.value;
-        const rows = table.querySelectorAll('tbody tr');
-        console.log('[Filter] valeur sélectionnée :', selected);
+  const filterSelect = document.getElementById('category-filter');
+  const searchInput = document.getElementById('search-input');
 
-        rows.forEach(row => {
-          const locId = row.dataset.locationId;
-          const show = !selected || locId === selected;
-          row.style.display = show ? '' : 'none';
-          console.log(
-            `[Filter] ligne id=${row.dataset.itemId} | location_id=${locId} | visible=${show}`
-          );
-        });
-      });
+  function applyFilters() {
+    const category = filterSelect?.value || '';
+    const query = searchInput?.value.toLowerCase() || '';
 
-      // --- Reset filtre quand on quitte l'onglet liste
-      tabs.forEach(tab =>
-        tab.addEventListener('click', () => {
-          const targetId = `tab-${tab.dataset.tab}`;
-          if (targetId !== 'tab-list') {
-            filterSelect.value = '';
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => (row.style.display = ''));
-            console.log(
-              '[Filter] Reset filtre et affichage de toutes les lignes'
-            );
-          }
-        })
-      );
-    }
+    table.querySelectorAll('tbody tr').forEach(row => {
+      const locId = row.dataset.locationId;
+      const text = row.textContent.toLowerCase();
+      row.style.display = (!category || locId === category) && (!query || text.includes(query)) ? '' : 'none';
+    });
+    clearSelections();
   }
 
+  filterSelect?.addEventListener('change', applyFilters);
+  searchInput?.addEventListener('input', applyFilters);
+
+  // Reset filters quand on sort de l’onglet liste
+  tabs.forEach(tab => tab.addEventListener('click', () => {
+    const targetId = `tab-${tab.dataset.tab}`;
+    if (targetId !== 'tab-list') {
+      if (filterSelect) filterSelect.value = '';
+      if (searchInput) searchInput.value = '';
+      table.querySelectorAll('tbody tr').forEach(row => row.style.display = '');
+      clearSelections();
+    }
+  }));
+
   // ---------------------------
-  // Supprimer l’image
+  // Remove image
   // ---------------------------
   document.getElementById('remove-image')?.addEventListener('click', () => {
-    dashboardEditor.preview.image.src =
-      'https://via.placeholder.com/400x250?text=Aperçu';
+    dashboardEditor.preview.image.src = 'https://via.placeholder.com/400x250?text=Aperçu';
     form.querySelector('#image').value = '';
   });
 
