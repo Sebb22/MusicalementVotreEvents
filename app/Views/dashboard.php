@@ -42,8 +42,8 @@
                     <div id="attributes" class="dashboard-form__attributes"></div>
                     <div class="dashboard-form__group"> <label for="image" class="dashboard-form__label">Image
                             principale</label> <input type="file" id="image" name="image" class="dashboard-form__input"
-                            accept="image/*"> </div> <button type="submit"
-                        class="dashboard-form__submit">Ajouter</button>
+                            accept="image/*"> <input type="hidden" name="image_transformed" id="image_transformed">
+                    </div> <button type="submit" class="dashboard-form__submit">Ajouter</button>
                 </form>
             </div> <!-- Preview -->
             <div class="dashboard-preview-wrapper">
@@ -57,7 +57,7 @@
                                 title="Supprimer l’image">✕</button> <span class="preview__item-price"
                                 id="preview-price">0 €</span> </div>
                         <div class="preview__controls"> <label for="resize">Zoom</label> <input type="range" id="resize"
-                                min="50" max="200" value="100"> </div>
+                                min="50" max="300" value="100"> </div>
                         <h3 class="preview__item-title" id="preview-name">Nom de l’article</h3>
                         <div class="preview__item-meta">
                             <p id="preview-stock">Stock : 0</p>
@@ -118,14 +118,14 @@
     </div>
 
     <!-- Modal de confirmation -->
-<div id="confirm-modal" class="modal">
-  <div class="modal-content">
-    <p id="confirm-message">Supprimer cet article ?</p>
-    <div class="modal-actions">
-      <button id="confirm-yes" class="btn btn-danger">Oui</button>
-      <button id="confirm-no" class="btn btn-secondary">Non</button>
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <p id="confirm-message">Supprimer cet article ?</p>
+            <div class="modal-actions">
+                <button id="confirm-yes" class="btn btn-danger">Oui</button>
+                <button id="confirm-no" class="btn btn-secondary">Non</button>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
 </section>

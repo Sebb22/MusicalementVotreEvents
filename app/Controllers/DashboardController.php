@@ -54,95 +54,97 @@ class DashboardController extends Controller
     }
 
     private function saveOrUpdateItem(?int $id = null)
-{
-    ob_start();
-    header('Content-Type: application/json');
+    {
+        ob_start();
+        header('Content-Type: application/json');
 
-    try {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            throw new \Exception("Requête invalide.");
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                throw new \Exception("Requête invalide.");
+            }
+
+            // --- Récupération données
+            $locationId = filter_input(INPUT_POST, 'location_id', FILTER_VALIDATE_INT);
+            $name = htmlspecialchars(trim($_POST['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $price = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT);
+            $stock = filter_input(INPUT_POST, 'stock', FILTER_VALIDATE_INT, [
+                "options" => ["default" => 0, "min_range" => 0],
+            ]);
+            $availability = filter_input(INPUT_POST, 'availability', FILTER_VALIDATE_INT, [
+                "options" => ["default" => 1],
+            ]);
+
+            if (!$locationId || !$name || $price === false || $price < 0) {
+                throw new \Exception("Champs manquants ou invalides.");
+            }
+
+            // --- Création ou mise à jour de l'item
+            $itemModel = new LocationItem($this->pdo);
+            $item = $id ? $itemModel->find($id) : new LocationItem($this->pdo);
+
+            if ($id && !$item) {
+                throw new \Exception("Élément introuvable.");
+            }
+
+            $item->location_id = $locationId;
+            $item->name = $name;
+            $item->price = $price;
+            $item->stock = $stock;
+            $item->availability = $availability;
+
+            $id ? $item->update() : $item->save();
+
+            // --- Gestion image
+            $pictureModel = new LocationPicture($this->pdo);
+
+// Si on a une image transformée en base64
+            $transformedImageBase64 = $_POST['image_transformed'] ?? null;
+
+            if ($transformedImageBase64) {
+                $paths = $this->saveBase64Image($transformedImageBase64);
+                $pictureModel->addPicture($item->id, $paths['original'], true);
+            }
+// Sinon si on a un fichier uploadé via $_FILES
+            elseif (!empty($_FILES['image']['tmp_name'])) {
+                $paths = $this->handleImageUpload($_FILES['image']);
+                $pictureModel->addPicture($item->id, $paths['original'], true);
+            }
+
+// Vérifier qu'il y a au moins une image
+            $mainImage = $pictureModel->getMainPictureByItem($item->id);
+            if (!$mainImage) {
+                throw new \Exception("Chaque article doit avoir au moins une image.");
+            }
+
+            // --- Attributs dynamiques
+            $this->handleAttributes($item->id);
+
+            // --- Réponse JSON
+            echo json_encode([
+                'success' => true,
+                'message' => $id ? "Élément mis à jour avec succès." : "Élément ajouté avec succès.",
+                'data' => [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'location_id' => $item->location_id,
+                    'location_name' => $this->location->all()[$item->location_id - 1]['name'] ?? null,
+                    'price' => (float) $item->price,
+                    'stock' => $item->stock,
+                    'availability' => $item->availability,
+                    'main_image' => $mainImage['image_path'],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ]);
         }
 
-        // --- Récupération données
-        $locationId = filter_input(INPUT_POST, 'location_id', FILTER_VALIDATE_INT);
-        $name = htmlspecialchars(trim($_POST['name'] ?? ''), ENT_QUOTES, 'UTF-8');
-        $price = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT);
-        $stock = filter_input(INPUT_POST, 'stock', FILTER_VALIDATE_INT, [
-            "options" => ["default" => 0, "min_range" => 0]
-        ]);
-        $availability = filter_input(INPUT_POST, 'availability', FILTER_VALIDATE_INT, [
-            "options" => ["default" => 1]
-        ]);
-
-        if (!$locationId || !$name || $price === false || $price < 0) {
-            throw new \Exception("Champs manquants ou invalides.");
-        }
-
-        // --- Création ou mise à jour de l'item
-        $itemModel = new LocationItem($this->pdo);
-        $item = $id ? $itemModel->find($id) : new LocationItem($this->pdo);
-
-        if ($id && !$item) {
-            throw new \Exception("Élément introuvable.");
-        }
-
-        $item->location_id = $locationId;
-        $item->name = $name;
-        $item->price = $price;
-        $item->stock = $stock;
-        $item->availability = $availability;
-
-        $id ? $item->update() : $item->save();
-
-        // --- Gestion image
-        $pictureModel = new LocationPicture($this->pdo);
-
-        if (!empty($_FILES['image']['tmp_name'])) {
-            $paths = $this->handleImageUpload($_FILES['image']); // 🔥 une seule fois
-            $pictureModel->addPicture($item->id, $paths['original'], true);
-
-            // 💡 si tu veux exploiter directement le thumbnail, tu pourrais aussi stocker $paths['thumbnail']
-            // ex. $pictureModel->addPicture($item->id, $paths['thumbnail'], false);
-        }
-
-        // Vérifier qu'il y a au moins une image
-        $mainImage = $pictureModel->getMainPictureByItem($item->id);
-        if (!$mainImage) {
-            throw new \Exception("Chaque article doit avoir au moins une image.");
-        }
-
-        // --- Attributs dynamiques
-        $this->handleAttributes($item->id);
-
-        // --- Réponse JSON
-        echo json_encode([
-            'success' => true,
-            'message' => $id ? "Élément mis à jour avec succès." : "Élément ajouté avec succès.",
-            'data' => [
-                'id' => $item->id,
-                'name' => $item->name,
-                'location_id' => $item->location_id,
-                'location_name' => $this->location->all()[$item->location_id - 1]['name'] ?? null,
-                'price' => (float) $item->price,
-                'stock' => $item->stock,
-                'availability' => $item->availability,
-                'main_image' => $mainImage['image_path'],
-            ],
-        ]);
-    } catch (\Exception $e) {
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'message' => $e->getMessage(),
-        ]);
+        ob_end_flush();
+        exit;
     }
-
-    ob_end_flush();
-    exit;
-}
-
-
-    
 
     public function addItem()
     {
@@ -244,58 +246,66 @@ class DashboardController extends Controller
     private function handleImageUpload($file, int $thumbWidth = 400, int $thumbHeight = 300): array
     {
         $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    
+
         $maxSize = (int) ini_get('upload_max_filesize') * 1024 * 1024;
-    
+
         if ($file['error'] !== UPLOAD_ERR_OK) {
             throw new \Exception("Erreur lors de l’upload (code {$file['error']}).");
         }
-    
+
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mimeType = finfo_file($finfo, $file['tmp_name']);
         finfo_close($finfo);
-    
+
         if (!in_array($mimeType, $allowedTypes, true)) {
             throw new \Exception("Format non supporté. Formats autorisés : JPG, PNG, WebP.");
         }
-    
+
         if ($file['size'] > $maxSize) {
             throw new \Exception(
                 "L’image est trop lourde (" . round($file['size'] / 1024 / 1024, 2) .
                 " Mo). Taille maximale : " . ($maxSize / 1024 / 1024) . " Mo."
             );
         }
-    
+
         $uploadDir = __DIR__ . '/../../public/uploads/';
         $thumbDir = $uploadDir . 'thumbs/';
-        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-        if (!is_dir($thumbDir)) mkdir($thumbDir, 0755, true);
-    
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        if (!is_dir($thumbDir)) {
+            mkdir($thumbDir, 0755, true);
+        }
+
         $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
         $fileName = uniqid('item_', true) . '.' . $ext;
         $filePath = $uploadDir . $fileName;
         $thumbPath = $thumbDir . $fileName;
-    
+
         if (!move_uploaded_file($file['tmp_name'], $filePath)) {
             throw new \Exception("Impossible de sauvegarder l’image.");
         }
-    
+
         // --- Création thumbnail ---
         list($width, $height, $type) = getimagesize($filePath);
-    
+
         switch ($type) {
-            case IMAGETYPE_JPEG: $img = imagecreatefromjpeg($filePath); break;
-            case IMAGETYPE_PNG:  $img = imagecreatefrompng($filePath);  break;
-            case IMAGETYPE_WEBP: $img = imagecreatefromwebp($filePath); break;
-            default: throw new \Exception('Format image non supporté pour le thumbnail.');
+            case IMAGETYPE_JPEG: $img = imagecreatefromjpeg($filePath);
+                break;
+            case IMAGETYPE_PNG: $img = imagecreatefrompng($filePath);
+                break;
+            case IMAGETYPE_WEBP: $img = imagecreatefromwebp($filePath);
+                break;
+            default:throw new \Exception('Format image non supporté pour le thumbnail.');
         }
-    
+
         $ratio = min($thumbWidth / $width, $thumbHeight / $height);
-        $newWidth = (int)($width * $ratio);
-        $newHeight = (int)($height * $ratio);
-    
+        $newWidth = (int) ($width * $ratio);
+        $newHeight = (int) ($height * $ratio);
+
         $thumb = imagecreatetruecolor($newWidth, $newHeight);
-    
+
         // Gestion transparence pour PNG/WebP
         if (in_array($type, [IMAGETYPE_PNG, IMAGETYPE_WEBP])) {
             imagealphablending($thumb, false);
@@ -303,24 +313,26 @@ class DashboardController extends Controller
             $transparent = imagecolorallocatealpha($thumb, 0, 0, 0, 127);
             imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $transparent);
         }
-    
+
         imagecopyresampled($thumb, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-    
+
         switch ($type) {
-            case IMAGETYPE_JPEG: imagejpeg($thumb, $thumbPath, 85); break;
-            case IMAGETYPE_PNG:  imagepng($thumb, $thumbPath, 6); break;
-            case IMAGETYPE_WEBP: imagewebp($thumb, $thumbPath, 80); break;
+            case IMAGETYPE_JPEG: imagejpeg($thumb, $thumbPath, 85);
+                break;
+            case IMAGETYPE_PNG: imagepng($thumb, $thumbPath, 6);
+                break;
+            case IMAGETYPE_WEBP: imagewebp($thumb, $thumbPath, 80);
+                break;
         }
-    
+
         imagedestroy($img);
         imagedestroy($thumb);
-    
+
         return [
             'original' => 'uploads/' . $fileName,
-            'thumbnail' => 'uploads/thumbs/' . $fileName
+            'thumbnail' => 'uploads/thumbs/' . $fileName,
         ];
     }
-    
 
     private function handleAttributes(int $itemId): void
     {
@@ -335,4 +347,96 @@ class DashboardController extends Controller
             }
         }
     }
+
+    private function saveBase64Image(string $base64, string $folder = 'uploads/'): array
+    {
+        $uploadDir = __DIR__ . '/../../public/' . $folder;
+        $thumbDir = $uploadDir . 'thumbs/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        if (!is_dir($thumbDir)) {
+            mkdir($thumbDir, 0755, true);
+        }
+
+        // --- Extraire les données
+        if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+            $data = substr($base64, strpos($base64, ',') + 1);
+            $ext = strtolower($type[1]);
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+                throw new \Exception("Format d'image non supporté : $ext");
+            }
+        } else {
+            throw new \Exception("Base64 invalide");
+        }
+
+        $data = base64_decode($data);
+        if ($data === false) {
+            throw new \Exception("Impossible de décoder l'image base64");
+        }
+
+        $fileName = uniqid('item_', true) . '.' . $ext;
+        $filePath = $uploadDir . $fileName;
+        $thumbPath = $thumbDir . $fileName;
+
+        file_put_contents($filePath, $data);
+
+        // --- Générer un thumbnail
+        list($width, $height, $type) = getimagesize($filePath);
+        $thumbWidth = 400;
+        $thumbHeight = 300;
+        $ratio = min($thumbWidth / $width, $thumbHeight / $height);
+        $newWidth = (int) ($width * $ratio);
+        $newHeight = (int) ($height * $ratio);
+
+        // --- Création de l'image selon le type
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $img = imagecreatefromjpeg($filePath);
+                break;
+            case IMAGETYPE_PNG:
+                $img = imagecreatefrompng($filePath);
+                break;
+            case IMAGETYPE_WEBP:
+                $img = imagecreatefromwebp($filePath);
+                break;
+            default:
+                throw new \Exception('Format image non supporté pour le thumbnail.');
+        }
+
+        $thumb = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Gestion transparence pour PNG/WebP
+        if (in_array($type, [IMAGETYPE_PNG, IMAGETYPE_WEBP])) {
+            imagealphablending($thumb, false);
+            imagesavealpha($thumb, true);
+            $transparent = imagecolorallocatealpha($thumb, 0, 0, 0, 127);
+            imagefilledrectangle($thumb, 0, 0, $newWidth, $newHeight, $transparent);
+        }
+
+        imagecopyresampled($thumb, $img, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        // --- Sauvegarde du thumbnail
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                imagejpeg($thumb, $thumbPath, 85);
+                break;
+            case IMAGETYPE_PNG:
+                imagepng($thumb, $thumbPath, 6);
+                break;
+            case IMAGETYPE_WEBP:
+                imagewebp($thumb, $thumbPath, 80);
+                break;
+        }
+
+        imagedestroy($img);
+        imagedestroy($thumb);
+
+        return [
+            'original' => $folder . $fileName,
+            'thumbnail' => $folder . 'thumbs/' . $fileName,
+        ];
+    }
+
 }

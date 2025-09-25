@@ -1,5 +1,8 @@
 import { renderAttributes } from './dashboardItemAttributesHandler.js';
-import { initImagePreview } from './dashboardImagePreviewHandler.js';
+import {
+  initImagePreview,
+  exportZoomedImage,
+} from './dashboardImagePreviewHandler.js';
 
 export class DashboardEditor {
   constructor({
@@ -34,6 +37,9 @@ export class DashboardEditor {
       resizeInput: document.getElementById('resize'),
       container: document.getElementById('preview-container'),
       removeBtn: document.getElementById('remove-image'),
+      form: this.form,
+      hiddenInput: document.getElementById('image_transformed'),
+      frameSrc: '/assets/frame.png', // chemin vers ton cadre PNG
     });
 
     // Lier formulaire → preview texte

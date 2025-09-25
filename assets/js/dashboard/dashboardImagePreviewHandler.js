@@ -1,11 +1,18 @@
-export function initImagePreview({ imageInput, previewMainImage, resizeInput, container, removeBtn }) {
+export function initImagePreview({
+    
+    imageInput,
+    previewMainImage,
+    resizeInput,
+    container,
+    removeBtn,
+    form,
+    hiddenInput,
+    frameSrc // chemin vers ton cadre PNG
+}) {
     if (!imageInput || !previewMainImage || !resizeInput || !container || !removeBtn) return;
 
-    let translateX = 0,
-        translateY = 0,
-        scale = 0.9;
-    let isDragging = false,
-        startX, startY;
+    let translateX = 0, translateY = 0, scale = 0.9;
+    let isDragging = false, startX, startY;
 
     function applyTransform() {
         previewMainImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
@@ -30,6 +37,34 @@ export function initImagePreview({ imageInput, previewMainImage, resizeInput, co
         resizeInput.value = scale * 100;
         applyTransform();
         removeBtn.style.display = "none";
+        hiddenInput.value = ""; // vider le champ caché
+    }
+
+    function generateTransformedImage() {
+        const canvas = document.createElement('canvas');
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+        const ctx = canvas.getContext('2d');
+
+        // calcul des dimensions de l'image transformée
+        const imgW = container.clientWidth * scale;
+        const imgH = container.clientHeight * scale;
+        const dx = translateX + (canvas.width - imgW) / 2;
+        const dy = translateY + (canvas.height - imgH) / 2;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(previewMainImage, dx, dy, imgW, imgH);
+
+        if (frameSrc) {
+            const frame = new Image();
+            frame.src = frameSrc;
+            frame.onload = () => {
+                ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+                hiddenInput.value = canvas.toDataURL('image/png');
+            }
+        } else {
+            hiddenInput.value = canvas.toDataURL('image/png');
+        }
     }
 
     // --- Events ---
@@ -79,4 +114,9 @@ export function initImagePreview({ imageInput, previewMainImage, resizeInput, co
 
     removeBtn.addEventListener('click', resetImage);
     previewMainImage.addEventListener('dblclick', resetImage);
+
+    // Avant submit, générer l'image finale
+    form.addEventListener('submit', e => {
+        generateTransformedImage();
+    });
 }
