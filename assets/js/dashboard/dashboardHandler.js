@@ -30,48 +30,53 @@ export function initDashboard({ formId, tableId, previewSelectors, attributesCon
   // ---------------------------
   form.addEventListener('submit', async e => {
     e.preventDefault();
-
+  
     if (dashboardEditor.imageHandler?.generateTransformedImage) {
       await dashboardEditor.imageHandler.generateTransformedImage();
     }
-
+  
     const formData = new FormData(form);
     const fileInput = form.querySelector('#image');
     const file = fileInput?.files[0];
     if (!file || file.size === 0) formData.delete('image');
-
+  
     const isEditMode = !!form.dataset.editId;
     const action = isEditMode ? 'modifier' : 'ajouter';
     const name = formData.get('name') || 'cet article';
-
+  
     if (!(await showConfirm(`Voulez-vous vraiment ${action} "${name}" ?`))) return;
-
+  
     try {
       const res = await fetch(form.action, { method: 'POST', body: formData });
       const text = await res.text();
       let result;
-
+  
       try { result = JSON.parse(text); } 
       catch { return showFormMessage('Réponse invalide du serveur.', 'error'); }
-
+  
       if (result.success) {
         showFormMessage(result.message, 'success');
+  
         dashboardEditor.updateTableRow(result.data);
-
-        // Switch to list tab
+  
         const listTab = document.querySelector('.dashboard-tab[data-tab="list"]');
         if (listTab) switchTab(listTab);
-
-        if (!isEditMode) dashboardEditor.reset();
-        else {
-          form.dataset.editId = '';
-          dashboardEditor.setMode('add');
+  
+        if (!isEditMode) {
+          dashboardEditor.reset();
+        } else {
+          // ⚡ Ici on attend que tous les attributs se remplissent
+          await dashboardEditor.editItem(result.data);
+          form.dataset.editId = result.data.id;
         }
-      } else showFormMessage(result.message, 'error');
+      } else {
+        showFormMessage(result.message, 'error');
+      }
     } catch {
       showFormMessage('Erreur de communication', 'error');
     }
   });
+  
 
   // ---------------------------
   // Onglets

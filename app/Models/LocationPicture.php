@@ -158,4 +158,20 @@ class LocationPicture
 
         return '/' . ltrim($pathInfo['dirname'] . '/thumbs/' . $pathInfo['basename'], '/');
     }
+
+    public function updatePicture(int $id, string $imagePath, bool $isMain = false): bool
+{
+    $stmt = $this->pdo->prepare("
+        UPDATE location_pictures
+        SET image_path = :image_path, is_main = :is_main, updated_at = NOW()
+        WHERE id = :id
+    ");
+
+    return $stmt->execute([
+        ':image_path' => $imagePath,
+        ':is_main' => $isMain ? 1 : 0,
+        ':id' => $id,
+    ]);
+}
+
 }

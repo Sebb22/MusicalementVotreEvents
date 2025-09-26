@@ -56,16 +56,16 @@ class DashboardController extends Controller
     private function saveOrUpdateItem(?int $id = null)
     {
         ob_start();
-        header('Content-Type: application/json');
-
+        header('Content-Type: application/json; charset=utf-8');
+    
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 throw new \Exception("Requête invalide.");
             }
-
-            // --- Récupération données
+    
+            // --- Récupération des données
             $locationId = filter_input(INPUT_POST, 'location_id', FILTER_VALIDATE_INT);
-            $name = htmlspecialchars(trim($_POST['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $name = trim($_POST['name'] ?? '');
             $price = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT);
             $stock = filter_input(INPUT_POST, 'stock', FILTER_VALIDATE_INT, [
                 "options" => ["default" => 0, "min_range" => 0],
@@ -73,53 +73,57 @@ class DashboardController extends Controller
             $availability = filter_input(INPUT_POST, 'availability', FILTER_VALIDATE_INT, [
                 "options" => ["default" => 1],
             ]);
-
-            if (!$locationId || !$name || $price === false || $price < 0) {
+    
+            if (!$locationId || $name === '' || $price === false || $price < 0) {
                 throw new \Exception("Champs manquants ou invalides.");
             }
-
+    
             // --- Création ou mise à jour de l'item
             $itemModel = new LocationItem($this->pdo);
             $item = $id ? $itemModel->find($id) : new LocationItem($this->pdo);
-
+    
             if ($id && !$item) {
                 throw new \Exception("Élément introuvable.");
             }
-
+    
+            // --- Affectation brute des valeurs
             $item->location_id = $locationId;
             $item->name = $name;
             $item->price = $price;
             $item->stock = $stock;
             $item->availability = $availability;
-
+    
             $id ? $item->update() : $item->save();
-
+    
             // --- Gestion image
             $pictureModel = new LocationPicture($this->pdo);
-
-// Si on a une image transformée en base64
             $transformedImageBase64 = $_POST['image_transformed'] ?? null;
-
+    
             if ($transformedImageBase64) {
                 $paths = $this->saveBase64Image($transformedImageBase64);
                 $pictureModel->addPicture($item->id, $paths['original'], true);
-            }
-// Sinon si on a un fichier uploadé via $_FILES
-            elseif (!empty($_FILES['image']['tmp_name'])) {
+            } elseif (!empty($_FILES['image']['tmp_name'])) {
                 $paths = $this->handleImageUpload($_FILES['image']);
                 $pictureModel->addPicture($item->id, $paths['original'], true);
             }
-
-// Vérifier qu'il y a au moins une image
-            $mainImage = $pictureModel->getMainPictureByItem($item->id);
-            if (!$mainImage) {
-                throw new \Exception("Chaque article doit avoir au moins une image.");
-            }
-
-            // --- Attributs dynamiques
+    
+            // --- Gestion attributs dynamiques
             $this->handleAttributes($item->id);
-
-            // --- Réponse JSON
+    
+            // --- Préparer données pour la réponse
+            $attrModel = new LocationAttribute($this->pdo);
+            $imagesModel = new LocationPicture($this->pdo);
+    
+            $attributesRaw = $attrModel->allByItem($item->id);
+            $attributesKV = [];
+            foreach ($attributesRaw as $attr) {
+                $attributesKV[$attr['name']] = $attr['value']; // brut
+            }
+    
+            $images = $imagesModel->getPicturesByItem($item->id);
+            $mainImage = $imagesModel->getMainPictureByItem($item->id);
+    
+            // --- Réponse JSON brute
             echo json_encode([
                 'success' => true,
                 'message' => $id ? "Élément mis à jour avec succès." : "Élément ajouté avec succès.",
@@ -131,21 +135,26 @@ class DashboardController extends Controller
                     'price' => (float) $item->price,
                     'stock' => $item->stock,
                     'availability' => $item->availability,
-                    'main_image' => $mainImage['image_path'],
+                    'main_image' => $mainImage['image_path'] ?? null,
+                    'pictures' => $images,
+                    'attributes' => $attributesKV,
                 ],
-            ]);
+            ], JSON_UNESCAPED_UNICODE); // <-- important pour garder les accents et apostrophes
+    
         } catch (\Exception $e) {
             http_response_code(400);
             echo json_encode([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ]);
+            ], JSON_UNESCAPED_UNICODE);
         }
-
+    
         ob_end_flush();
         exit;
     }
-
+    
+    
+    
     public function addItem()
     {
         $this->saveOrUpdateItem();

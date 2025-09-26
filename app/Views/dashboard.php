@@ -84,7 +84,9 @@
 
                     <div class="dashboard-filter__search-wrapper">
                         <span class="search-icon">🔍</span>
-                        <input type="text" class="dashboard-filter__search" placeholder="Rechercher...">
+                        <input type="text" id="search-input" class="dashboard-filter__search"
+                            placeholder="Rechercher...">
+
                     </div>
                 </div>
             </div>

@@ -1,12 +1,19 @@
 import { initImagePreview } from './dashboardImagePreviewHandler.js';
 
 export class DashboardEditor {
-  constructor({ form, preview, attributesContainer, previewAttributes, tableId }) {
+  constructor({
+    form,
+    preview,
+    attributesContainer,
+    previewAttributes,
+    tableId,
+  }) {
     this.form = form;
     this.tableId = tableId;
     this.attributesContainer = attributesContainer;
     this.previewAttributes = previewAttributes;
-    this.formModeIndicator = document.getElementById('form-mode-indicator') || null;
+    this.formModeIndicator =
+      document.getElementById('form-mode-indicator') || null;
 
     // Inputs
     this.inputs = {
@@ -23,8 +30,13 @@ export class DashboardEditor {
     this.preview = preview;
 
     // Catégories
-    this.locations = Array.from(this.inputs.location?.options || [])
-      .reduce((acc, opt) => { if (opt.value) acc[opt.value] = opt.textContent; return acc; }, {});
+    this.locations = Array.from(this.inputs.location?.options || []).reduce(
+      (acc, opt) => {
+        if (opt.value) acc[opt.value] = opt.textContent;
+        return acc;
+      },
+      {}
+    );
 
     // Preview image
     this.imageHandler = initImagePreview({
@@ -44,7 +56,10 @@ export class DashboardEditor {
 
   setMode(mode) {
     const submitBtn = this.form.querySelector('.dashboard-form__submit');
-    const config = { add: { text: 'Ajouter', action: '/dashboard/add' }, edit: { text: 'Mettre à jour', action: '/dashboard/edit' } };
+    const config = {
+      add: { text: 'Ajouter', action: '/dashboard/add' },
+      edit: { text: 'Mettre à jour', action: '/dashboard/edit' },
+    };
 
     if (this.formModeIndicator) {
       this.formModeIndicator.textContent = `Mode : ${mode === 'edit' ? 'Édition' : 'Ajout'}`;
@@ -57,14 +72,21 @@ export class DashboardEditor {
 
   async callRenderAttributes(locId, existingValues = {}) {
     try {
-      const { renderAttributes } = await import('./dashboardItemAttributesHandler.js');
-      renderAttributes(locId, this.attributesContainer, this.previewAttributes, existingValues);
+      const { renderAttributes } = await import(
+        './dashboardItemAttributesHandler.js'
+      );
+      await renderAttributes(
+        locId,
+        this.attributesContainer,
+        this.previewAttributes,
+        existingValues
+      );
     } catch (err) {
       console.error('[Error] Impossible de charger renderAttributes :', err);
     }
   }
 
-  editItem(item) {
+  async editItem(item) {
     this.form.dataset.editId = item.id || '';
     this.inputs.articleId.value = item.id || '';
     this.inputs.name.value = item.name || '';
@@ -73,24 +95,51 @@ export class DashboardEditor {
     this.inputs.availability.value = item.availability ?? '1';
     this.inputs.location.value = item.location_id || '';
 
+    // Mettre à jour la preview texte
     this.updatePreview(item);
+    console.log('[EditItem] Article reçu :', item);
 
     const mainPicture = item.pictures?.find(p => p.is_main === '1');
-    mainPicture ? this.imageHandler?.setImage(mainPicture.image_path) : this.imageHandler?.resetImage();
+    console.log('[EditItem] Main picture trouvée :', mainPicture);
 
-    if (item.location_id) this.callRenderAttributes(item.location_id, item.attributes || {});
+    if (mainPicture && this.imageHandler?.setImage) {
+      console.log('[EditItem] Appel setImage...');
+      await this.imageHandler.setImage(mainPicture.image_path);
+    } else {
+      console.log('[EditItem] Pas d’image principale, reset...');
+      this.imageHandler?.resetImage();
+    }
+
+    if (item.location_id) {
+      console.log(
+        '[EditItem] Appel renderAttributes pour locId :',
+        item.location_id,
+        'avec valeurs :',
+        item.attributes
+      );
+      await this.callRenderAttributes(item.location_id, item.attributes || {});
+    } else {
+      console.log('[EditItem] Pas de location_id, pas d’attributs à rendre.');
+    }
+
     this.setMode('edit');
   }
 
   updatePreview(item) {
     this.preview.name.textContent = item.name || 'Nom de l’article';
-    this.preview.price.textContent = item.price ? parseFloat(item.price).toFixed(2) + ' €' : '0 €';
+    this.preview.price.textContent = item.price
+      ? parseFloat(item.price).toFixed(2) + ' €'
+      : '0 €';
     this.preview.stock.textContent = 'Stock : ' + (item.stock ?? 0);
-    this.preview.availability.textContent = Number(item.availability) === 1 ? 'Disponible' : 'Indisponible';
-    this.preview.category.textContent = 'Catégorie : ' + this.getLocationName(item.location_id);
+    this.preview.availability.textContent =
+      Number(item.availability) === 1 ? 'Disponible' : 'Indisponible';
+    this.preview.category.textContent =
+      'Catégorie : ' + this.getLocationName(item.location_id);
   }
 
-  getLocationName(id) { return this.locations[id] || '-'; }
+  getLocationName(id) {
+    return this.locations[id] || '-';
+  }
 
   reset() {
     this.form.dataset.editId = '';
@@ -107,26 +156,49 @@ export class DashboardEditor {
   bindLivePreview() {
     const { form, preview, inputs } = this;
 
-    inputs.name?.addEventListener('input', e => preview.name.textContent = e.target.value || 'Nom de l’article');
-    inputs.price?.addEventListener('input', e => preview.price.textContent = (parseFloat(e.target.value) || 0).toFixed(2) + ' €');
-    inputs.stock?.addEventListener('input', e => preview.stock.textContent = 'Stock : ' + (parseInt(e.target.value) || 0));
-    inputs.availability?.addEventListener('change', e => preview.availability.textContent = e.target.value === '1' ? 'Disponible' : 'Indisponible');
+    inputs.name?.addEventListener(
+      'input',
+      e => (preview.name.textContent = e.target.value || 'Nom de l’article')
+    );
+    inputs.price?.addEventListener(
+      'input',
+      e =>
+        (preview.price.textContent =
+          (parseFloat(e.target.value) || 0).toFixed(2) + ' €')
+    );
+    inputs.stock?.addEventListener(
+      'input',
+      e =>
+        (preview.stock.textContent =
+          'Stock : ' + (parseInt(e.target.value) || 0))
+    );
+    inputs.availability?.addEventListener(
+      'change',
+      e =>
+        (preview.availability.textContent =
+          e.target.value === '1' ? 'Disponible' : 'Indisponible')
+    );
     inputs.location?.addEventListener('change', async e => {
-      preview.category.textContent = 'Catégorie : ' + this.getLocationName(e.target.value);
+      preview.category.textContent =
+        'Catégorie : ' + this.getLocationName(e.target.value);
       await this.callRenderAttributes(e.target.value);
     });
 
     inputs.image?.addEventListener('change', e => {
       const file = e.target.files[0];
-      if (!file) return (preview.image.src = 'https://via.placeholder.com/400x250?text=Aperçu');
+      if (!file)
+        return (preview.image.src =
+          'https://via.placeholder.com/400x250?text=Aperçu');
       if (file.size > 8 * 1024 * 1024) {
-        alert(`L'image est trop lourde (${(file.size/1024/1024).toFixed(2)} Mo). Taille max : 8 Mo.`);
+        alert(
+          `L'image est trop lourde (${(file.size / 1024 / 1024).toFixed(2)} Mo). Taille max : 8 Mo.`
+        );
         e.target.value = '';
         preview.image.src = 'https://via.placeholder.com/400x250?text=Aperçu';
         return;
       }
       const reader = new FileReader();
-      reader.onload = ev => preview.image.src = ev.target.result;
+      reader.onload = ev => (preview.image.src = ev.target.result);
       reader.readAsDataURL(file);
     });
   }
@@ -136,14 +208,19 @@ export class DashboardEditor {
     if (!table) return;
     const tbody = table.querySelector('tbody');
     if (!tbody) return;
-
-    const priceFormatted = parseFloat(itemData.price).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  
+    const priceFormatted =
+      parseFloat(itemData.price).toLocaleString('fr-FR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }) + ' €';
+  
     let row = tbody.querySelector(`tr[data-item-id="${itemData.id}"]`);
     const newRow = document.createElement('tr');
     newRow.dataset.item = JSON.stringify(itemData);
     newRow.dataset.itemId = String(itemData.id);
     newRow.dataset.locationId = itemData.location_id;
-
+  
     newRow.innerHTML = `
       <td><input type="checkbox" class="item-checkbox" data-id="${itemData.id}"></td>
       <td data-label="Nom">${itemData.name}</td>
@@ -156,12 +233,27 @@ export class DashboardEditor {
         <button type="button" class="btn-delete">🗑️</button>
       </td>
     `;
-
+  
     row ? row.replaceWith(newRow) : tbody.appendChild(newRow);
-
+  
     newRow.classList.add('highlight');
-    newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  
+    // Scroll dans le conteneur du tableau
+    const container = table.parentElement; // supposé avoir overflow: auto
+    if (container) {
+      const containerTop = container.getBoundingClientRect().top;
+      const rowTop = newRow.getBoundingClientRect().top;
+      container.scrollBy({
+        top: rowTop - containerTop - container.clientHeight / 2,
+        behavior: 'smooth',
+      });
+    } else {
+      // fallback si pas de conteneur, scroll sur la page
+      newRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  
     setTimeout(() => newRow.classList.remove('highlight'), 2000);
     table.style.display = 'table';
   }
+  
 }
